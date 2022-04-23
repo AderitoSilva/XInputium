@@ -1,0 +1,1389 @@
+﻿<Window x:Class="XInputium.Preview.MainWindow"
+    x:Name="window"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="clr-namespace:XInputium.Preview"
+    xmlns:system="clr-namespace:System;assembly=mscorlib"
+    xmlns:converters="clr-namespace:XInputium.Preview.Data.Converters"
+    xmlns:controls="clr-namespace:XInputium.Preview.Ui.Controls"
+    xmlns:poco="clr-namespace:XInputium.Preview.Data.Poco"
+    xmlns:xinput="clr-namespace:XInputium;assembly=XInputium"
+    xmlns:xinput2="clr-namespace:XInputium.XInput;assembly=XInputium"
+    mc:Ignorable="d"
+    Title="XInputium Preview" 
+    Width="1080" Height="720" MinWidth="1050" MinHeight="700" WindowStartupLocation="CenterScreen"
+    Background="#F0F0F0" Foreground="#282828" FontSize="14">
+    <Window.Resources>
+
+        <Style x:Key="TriggerPresenterStyle" TargetType="{x:Type HeaderedContentControl}">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Background" Value="#20151515"/>
+            <Setter Property="Foreground" Value="#151515"/>
+            <Setter Property="BorderBrush" Value="#80151515"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type HeaderedContentControl}">
+                        <Border BorderThickness="{TemplateBinding BorderThickness}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            Background="{TemplateBinding Background}"
+                            Padding="{TemplateBinding Padding}"
+                            SnapsToDevicePixels="True" CornerRadius="2">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <ContentPresenter x:Name="headerContent"
+                                    HorizontalAlignment="Center" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                    ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                    ContentTemplateSelector="{TemplateBinding HeaderTemplateSelector}"
+                                    ContentStringFormat="{TemplateBinding ContentStringFormat}"
+                                    Content="{TemplateBinding Header}"
+                                    TextElement.FontSize="12"/>
+                                <ContentPresenter x:Name="content" Grid.Row="1" 
+                                    SnapsToDevicePixels="True" Margin="0,4,0,0"
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    ContentTemplate="{TemplateBinding ContentTemplate}"
+                                    ContentTemplateSelector="{TemplateBinding ContentTemplateSelector}"
+                                    ContentStringFormat="{TemplateBinding ContentStringFormat}"
+                                    Content="{TemplateBinding Content}"/>
+                            </Grid>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <DataTemplate DataType="{x:Type xinput:Trigger}">
+            <Grid>
+                <Border BorderThickness="1" BorderBrush="#80151515" Background="#40000000"
+                    Padding="0" SnapsToDevicePixels="True">
+                    <Grid x:Name="bar">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Rectangle Grid.ColumnSpan="3" HorizontalAlignment="Left" 
+                            Fill="#F0F0F0">
+                            <Rectangle.Width>
+                                <MultiBinding Mode="OneWay">
+                                    <MultiBinding.Converter>
+                                        <converters:MultiplicationConverter/>
+                                    </MultiBinding.Converter>
+                                    <MultiBinding.Bindings>
+                                        <Binding Path="RawValue"/>
+                                        <Binding ElementName="bar" Path="ActualWidth"/>
+                                    </MultiBinding.Bindings>
+                                </MultiBinding>
+                            </Rectangle.Width>
+                        </Rectangle>
+                        <Border x:Name="innerDeadZone" HorizontalAlignment="Left" 
+                            Background="#20F00000" BorderBrush="#80FF0000" BorderThickness="0,0,1,0">
+                            <Border.Width>
+                                <MultiBinding Mode="OneWay">
+                                    <MultiBinding.Converter>
+                                        <converters:MultiplicationConverter/>
+                                    </MultiBinding.Converter>
+                                    <MultiBinding.Bindings>
+                                        <Binding Path="InnerDeadZone"/>
+                                        <Binding ElementName="bar" Path="ActualWidth"/>
+                                    </MultiBinding.Bindings>
+                                </MultiBinding>
+                            </Border.Width>
+                        </Border>
+                        <Border Grid.Column="2" x:Name="outerDeadZone" 
+                            HorizontalAlignment="Right" BorderThickness="1,0,0,0"
+                            Background="#20F00000" BorderBrush="#80FF0000">
+                            <Border.Width>
+                                <MultiBinding Mode="OneWay">
+                                    <MultiBinding.Converter>
+                                        <converters:MultiplicationConverter/>
+                                    </MultiBinding.Converter>
+                                    <MultiBinding.Bindings>
+                                        <Binding Path="OuterDeadZone"/>
+                                        <Binding ElementName="bar" Path="ActualWidth"/>
+                                    </MultiBinding.Bindings>
+                                </MultiBinding>
+                            </Border.Width>
+                        </Border>
+                    </Grid>
+                </Border>
+                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" 
+                    Padding="2" TextAlignment="Center" FontSize="12"
+                    Foreground="#151515"
+                    Text="{Binding Path=Value, StringFormat='P2', Mode=OneWay}"/>
+            </Grid>
+        </DataTemplate>
+
+        <Style x:Key="JoystickPresenterStyle" TargetType="{x:Type HeaderedContentControl}">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="Background" Value="#20151515"/>
+            <Setter Property="Foreground" Value="#151515"/>
+            <Setter Property="BorderBrush" Value="#80151515"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type HeaderedContentControl}">
+                        <Border SnapsToDevicePixels="True" CornerRadius="2"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            Background="{TemplateBinding Background}"
+                            Padding="{TemplateBinding Padding}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <ContentPresenter x:Name="header"
+                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    TextElement.Foreground="{TemplateBinding Foreground}"
+                                    TextElement.FontSize="12"
+                                    Content="{TemplateBinding Header}"
+                                    ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                    ContentTemplateSelector="{TemplateBinding HeaderTemplateSelector}"
+                                    ContentStringFormat="{TemplateBinding HeaderStringFormat}"/>
+                                <ContentPresenter x:Name="content" Grid.Row="1" Margin="0,4,0,0"
+                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" 
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    TextElement.Foreground="{TemplateBinding Foreground}"
+                                    Content="{TemplateBinding Content}"
+                                    ContentTemplate="{TemplateBinding ContentTemplate}"
+                                    ContentTemplateSelector="{TemplateBinding ContentTemplateSelector}"
+                                    ContentStringFormat="{TemplateBinding ContentStringFormat}"/>
+                            </Grid>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <DataTemplate DataType="{x:Type xinput:Joystick}">
+            <DataTemplate.Resources>
+                <converters:MultiplicationConverter x:Key="MultiplicationConverter"/>
+                <system:Double x:Key="HalfMultiplier">0.5</system:Double>
+                <system:Double x:Key="NegativeOne">-1</system:Double>
+                <system:Double x:Key="FullAngle">360</system:Double>
+            </DataTemplate.Resources>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid x:Name="circle" Grid.ColumnSpan="2" Margin="5" SnapsToDevicePixels="True">
+                    <Grid.ToolTip>
+                        <TextBlock MaxWidth="600" TextWrapping="Wrap">
+                            <Bold>Joystick raw polar representation.</Bold>
+                            <LineBreak/>
+                            Displays the raw joystick position in polar coordinates.
+                            <LineBreak/>
+                            Inner and outer dead-zone areas are highlighted. 
+                            <LineBreak/>
+                            Notice that the axes lines represent the raw Cartesian
+                            location of the X and Y axes, while the dot represents
+                            the polar location of these axes, restricted to the circular
+                            area. This means that when the axes lines cross outside the 
+                            circular area of the joystick, the device may not have 
+                            perfectly round sticks or it may be reporting its axes values
+                            inaccurately. The cross lines will be highlighted when 
+                            they cross outside the circle.
+                            <LineBreak/>
+                            The effective polar location of the joystick is represented 
+                            by the white point.
+                        </TextBlock>
+                    </Grid.ToolTip>
+                    <Ellipse x:Name="fullArea" Fill="#A0151515" Stroke="#151515" StrokeThickness="1"
+                        Height="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=Self}}"
+                        VerticalAlignment="Center"/>
+                    <Ellipse x:Name="innerDeadZone" Fill="#40FF0000" Stroke="#FF0000" StrokeThickness="1"
+                        Height="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=Self}}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Ellipse.Width>
+                            <MultiBinding Converter="{StaticResource MultiplicationConverter}">
+                                <MultiBinding.Bindings>
+                                    <Binding Path="InnerDeadZone"/>
+                                    <Binding ElementName="fullArea" Path="ActualWidth"/>
+                                </MultiBinding.Bindings>
+                            </MultiBinding>
+                        </Ellipse.Width>
+                    </Ellipse>
+                    <Grid x:Name="outerDeadZone">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Ellipse Grid.ColumnSpan="3" 
+                            Height="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=Self}}"
+                            VerticalAlignment="Center"
+                            Stroke="{Binding ElementName=innerDeadZone, Path=Fill}">
+                            <Ellipse.StrokeThickness>
+                                <MultiBinding Converter="{StaticResource MultiplicationConverter}">
+                                    <MultiBinding.Bindings>
+                                        <Binding Path="OuterDeadZone"/>
+                                        <Binding ElementName="fullArea" Path="ActualWidth"/>
+                                        <Binding Source="{StaticResource HalfMultiplier}"/>
+                                    </MultiBinding.Bindings>
+                                </MultiBinding>
+                            </Ellipse.StrokeThickness>
+                        </Ellipse>
+                        <Rectangle Grid.Column="0">
+                            <Rectangle.Width>
+                                <MultiBinding Converter="{StaticResource MultiplicationConverter}">
+                                    <MultiBinding.Bindings>
+                                        <Binding Path="OuterDeadZone"/>
+                                        <Binding ElementName="fullArea" Path="ActualWidth"/>
+                                        <Binding Source="{StaticResource HalfMultiplier}"/>
+                                    </MultiBinding.Bindings>
+                                </MultiBinding>
+                            </Rectangle.Width>
+                        </Rectangle>
+                        <Rectangle Grid.Column="2">
+                            <Rectangle.Width>
+                                <MultiBinding Converter="{StaticResource MultiplicationConverter}">
+                                    <MultiBinding.Bindings>
+                                        <Binding Path="OuterDeadZone"/>
+                                        <Binding ElementName="fullArea" Path="ActualWidth"/>
+                                        <Binding Source="{StaticResource HalfMultiplier}"/>
+                                    </MultiBinding.Bindings>
+                                </MultiBinding>
+                            </Rectangle.Width>
+                        </Rectangle>
+                        <Ellipse Grid.Column="1" VerticalAlignment="Center"
+                            Height="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=Self}}"
+                            Stroke="{Binding ElementName=innerDeadZone, Path=Stroke}" StrokeThickness="1"/>
+                    </Grid>
+                    <Grid Width="{Binding ElementName=fullArea, Path=ActualWidth}"
+                        Height="{Binding ElementName=fullArea, Path=ActualHeight}">
+                        <Rectangle Width="1" HorizontalAlignment="Center"
+                            Fill="{Binding ElementName=rawPoint, Path=Fill}"
+                            RenderTransformOrigin="0.5,0.5">
+                            <Rectangle.RenderTransform>
+                                <TranslateTransform>
+                                    <TranslateTransform.X>
+                                        <MultiBinding Converter="{StaticResource MultiplicationConverter}">
+                                            <MultiBinding.Bindings>
+                                                <Binding Path="RawX"/>
+                                                <Binding ElementName="fullArea" Path="ActualWidth"/>
+                                                <Binding Source="{StaticResource HalfMultiplier}"/>
+                                            </MultiBinding.Bindings>
+                                        </MultiBinding>
+                                    </TranslateTransform.X>
+                                </TranslateTransform>
+                            </Rectangle.RenderTransform>
+                        </Rectangle>
+                        <Rectangle Height="1" VerticalAlignment="Center"
+                            Fill="{Binding ElementName=rawPoint, Path=Fill}"
+                            RenderTransformOrigin="0.5,0.5">
+                            <Rectangle.RenderTransform>
+                                <TranslateTransform>
+                                    <TranslateTransform.Y>
+                                        <MultiBinding Converter="{StaticResource MultiplicationConverter}">
+                                            <MultiBinding.Bindings>
+                                                <Binding Path="RawY"/>
+                                                <Binding ElementName="fullArea" Path="ActualHeight"/>
+                                                <Binding Source="{StaticResource HalfMultiplier}"/>
+                                                <Binding Source="{StaticResource NegativeOne}"/>
+                                            </MultiBinding.Bindings>
+                                        </MultiBinding>
+                                    </TranslateTransform.Y>
+                                </TranslateTransform>
+                            </Rectangle.RenderTransform>
+                        </Rectangle>
+                    </Grid>
+                    <Ellipse x:Name="rawPoint" Fill="#2080FF" Width="9"
+                        Height="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=Self}}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        RenderTransformOrigin="0.5,0.5">
+                        <Ellipse.RenderTransform>
+                            <TransformGroup>
+                                <TranslateTransform>
+                                    <TranslateTransform.Y>
+                                        <MultiBinding Converter="{StaticResource MultiplicationConverter}">
+                                            <MultiBinding.Bindings>
+                                                <Binding Path="RawRadius"/>
+                                                <Binding ElementName="fullArea" Path="ActualWidth"/>
+                                                <Binding Source="{StaticResource HalfMultiplier}"/>
+                                                <Binding Source="{StaticResource NegativeOne}"/>
+                                            </MultiBinding.Bindings>
+                                        </MultiBinding>
+                                    </TranslateTransform.Y>
+                                </TranslateTransform>
+                                <RotateTransform>
+                                    <RotateTransform.Angle>
+                                        <MultiBinding Converter="{StaticResource MultiplicationConverter}">
+                                            <MultiBinding.Bindings>
+                                                <Binding Path="RawAngle"/>
+                                                <Binding Source="{StaticResource FullAngle}"/>
+                                            </MultiBinding.Bindings>
+                                        </MultiBinding>
+                                    </RotateTransform.Angle>
+                                </RotateTransform>
+                            </TransformGroup>
+                        </Ellipse.RenderTransform>
+                    </Ellipse>
+                    <Ellipse x:Name="effectivePoint" Fill="#80FFFFFF" Width="7"
+                        Height="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=Self}}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        RenderTransformOrigin="0.5,0.5">
+                        <Ellipse.RenderTransform>
+                            <TransformGroup>
+                                <TranslateTransform>
+                                    <TranslateTransform.Y>
+                                        <MultiBinding Converter="{StaticResource MultiplicationConverter}">
+                                            <MultiBinding.Bindings>
+                                                <Binding Path="Radius"/>
+                                                <Binding ElementName="fullArea" Path="ActualWidth"/>
+                                                <Binding Source="{StaticResource HalfMultiplier}"/>
+                                                <Binding Source="{StaticResource NegativeOne}"/>
+                                            </MultiBinding.Bindings>
+                                        </MultiBinding>
+                                    </TranslateTransform.Y>
+                                </TranslateTransform>
+                                <RotateTransform>
+                                    <RotateTransform.Angle>
+                                        <MultiBinding Converter="{StaticResource MultiplicationConverter}">
+                                            <MultiBinding.Bindings>
+                                                <Binding Path="Angle"/>
+                                                <Binding Source="{StaticResource FullAngle}"/>
+                                            </MultiBinding.Bindings>
+                                        </MultiBinding>
+                                    </RotateTransform.Angle>
+                                </RotateTransform>
+                            </TransformGroup>
+                        </Ellipse.RenderTransform>
+                    </Ellipse>
+                </Grid>
+                <TextBlock x:Name="radiusText" Grid.Column="0" Grid.Row="1" Padding="4,2,2,0"
+                    HorizontalAlignment="Left" FontSize="10"
+                    Text="{Binding Radius, Mode=OneWay, StringFormat='P2'}">
+                    <TextBlock.ToolTip>
+                        <TextBlock MaxWidth="400" TextWrapping="Wrap">
+                            <Bold>Joystick effective radius.</Bold>
+                            <LineBreak/>
+                            This may not always be equal to the raw radius reported by the device, 
+                            because this value may be affected by several joystick settings, like 
+                            inner and outer dead-zones or non-linear modifier functions.
+                        </TextBlock>
+                    </TextBlock.ToolTip>
+                </TextBlock>
+                <TextBlock x:Name="angleText" Grid.Column="1" Grid.Row="1" Padding="2,2,4,0"
+                    HorizontalAlignment="Right" FontSize="10">
+                    <TextBlock.ToolTip>
+                        <TextBlock MaxWidth="300" TextWrapping="Wrap">
+                            <Bold>Joystick effective angle, in degrees.</Bold>
+                            <LineBreak/>
+                            This may not always be equal to the raw angle reported by the device,
+                            as this value can be affected by several joystick settings, 
+                            like axis inversion.
+                        </TextBlock>
+                    </TextBlock.ToolTip>
+                    <TextBlock.Text>
+                        <MultiBinding Converter="{StaticResource MultiplicationConverter}"
+                            Mode="OneWay" StringFormat="0.0º">
+                            <MultiBinding.Bindings>
+                                <Binding Path="Angle"/>
+                                <Binding Source="{StaticResource FullAngle}"/>
+                            </MultiBinding.Bindings>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+            </Grid>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding Path=InnerDeadZone}" Value="0">
+                    <Setter TargetName="innerDeadZone" Property="Visibility" Value="Collapsed"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Path=OuterDeadZone}" Value="0">
+                    <Setter TargetName="outerDeadZone" Property="Visibility" Value="Collapsed"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsPushed}" Value="False">
+                    <Setter TargetName="radiusText" Property="Text" Value="RADIUS"/>
+                    <Setter TargetName="angleText" Property="Text" Value="ANGLE"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsRawWithinCircle}" Value="False">
+                    <Setter TargetName="rawPoint" Property="Fill" Value="#FF3020"/>
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
+        <Style x:Key="ButtonPresenterStyle" TargetType="{x:Type ContentControl}">
+            <Style.Resources>
+                <system:Double x:Key="ShapeStrokeThickness">3</system:Double>
+                <Color x:Key="ShapeStrokeColor">#40A0FF</Color>
+                <SolidColorBrush x:Key="ShapeStroke" Color="{StaticResource ShapeStrokeColor}"/>
+            </Style.Resources>
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+            <Setter Property="IsHitTestVisible" Value="False"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ContentControl}">
+                        <Border x:Name="buttonBd" Visibility="Visible">
+                            <ContentPresenter Content="{TemplateBinding Content}">
+                                <ContentPresenter.ContentTemplate>
+                                    <DataTemplate DataType="{x:Type xinput2:XInputButton}">
+                                        <Grid x:Name="buttonView" Visibility="Collapsed"
+                                            RenderTransformOrigin="0.5,0.5" SnapsToDevicePixels="False">
+                                            <Grid.RenderTransform>
+                                                <ScaleTransform x:Name="buttonViewScale"
+                                                    ScaleY="{Binding Path=ScaleX, 
+                                                        RelativeSource={RelativeSource Mode=Self}}"/>
+                                            </Grid.RenderTransform>
+                                            <Grid.Effect>
+                                                <DropShadowEffect Color="{StaticResource ShapeStrokeColor}" 
+                                                    BlurRadius="12" Opacity="1"
+                                                    ShadowDepth="0" RenderingBias="Performance"/>
+                                            </Grid.Effect>
+                                            <Grid x:Name="shapes">
+                                                <Ellipse x:Name="shape_Ellipse" 
+                                                    Stroke="{StaticResource ShapeStroke}" 
+                                                    StrokeThickness="{StaticResource ShapeStrokeThickness}"/>
+                                                <Path x:Name="shape_ArrowUp" Visibility="Collapsed"
+                                                    Stroke="{StaticResource ShapeStroke}" 
+                                                    StrokeThickness="{StaticResource ShapeStrokeThickness}"
+                                                    Stretch="Fill"
+                                                    Data="M0,1 0,0.2 q0,-0.1 0.2,-0.2 q0.3,-0.1 0.6,0 q0.2,0.1 0.2,0.2 L1,1"/>
+                                                <Path x:Name="shape_ArrowDown" Visibility="Collapsed"
+                                                    Stroke="{StaticResource ShapeStroke}" 
+                                                    StrokeThickness="{StaticResource ShapeStrokeThickness}"
+                                                    Stretch="Fill"
+                                                    Data="M0,1 0,0.2 q0,-0.1 0.2,-0.2 q0.3,-0.1 0.6,0 q0.2,0.1 0.2,0.2 L1,1">
+                                                    <Path.LayoutTransform>
+                                                        <RotateTransform Angle="180"/>
+                                                    </Path.LayoutTransform>
+                                                </Path>
+                                                <Path x:Name="shape_ArrowLeft" Visibility="Collapsed"
+                                                    Stroke="{StaticResource ShapeStroke}" 
+                                                    StrokeThickness="{StaticResource ShapeStrokeThickness}"
+                                                    Stretch="Fill" RenderTransformOrigin="0.5,0.5"
+                                                    Data="M0,1 0,0.2 q0,-0.1 0.2,-0.2 q0.3,-0.1 0.6,0 q0.2,0.1 0.2,0.2 L1,1">
+                                                    <Path.LayoutTransform>
+                                                        <RotateTransform Angle="270"/>
+                                                    </Path.LayoutTransform>
+                                                </Path>
+                                                <Path x:Name="shape_ArrowRight" Visibility="Collapsed"
+                                                    Stroke="{StaticResource ShapeStroke}" 
+                                                    StrokeThickness="{StaticResource ShapeStrokeThickness}"
+                                                    Stretch="Fill"
+                                                    Data="M0,1 0,0.2 q0,-0.1 0.2,-0.2 q0.3,-0.1 0.6,0 q0.2,0.1 0.2,0.2 L1,1">
+                                                    <Path.LayoutTransform>
+                                                        <RotateTransform Angle="90"/>
+                                                    </Path.LayoutTransform>
+                                                </Path>
+                                            </Grid>
+                                        </Grid>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding IsPressed}" Value="True">
+                                                <Setter TargetName="buttonView" Property="Visibility" Value="Visible"/>
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetName="buttonViewScale"
+                                                                Storyboard.TargetProperty="ScaleX"
+                                                                To="1.2" Duration="00:00:00.060"
+                                                                AutoReverse="True" FillBehavior="Stop">
+                                                                <DoubleAnimation.EasingFunction>
+                                                                    <CubicEase EasingMode="EaseOut"/>
+                                                                </DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.EnterActions>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Path=Button}" Value="DPadUp">
+                                                <Setter TargetName="shape_Ellipse" Property="Visibility" Value="Collapsed"/>
+                                                <Setter TargetName="shape_ArrowUp" Property="Visibility" Value="Visible"/>
+                                                <Setter TargetName="buttonView" Property="RenderTransformOrigin" Value="0.5,1"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Path=Button}" Value="DPadDown">
+                                                <Setter TargetName="shape_Ellipse" Property="Visibility" Value="Collapsed"/>
+                                                <Setter TargetName="shape_ArrowDown" Property="Visibility" Value="Visible"/>
+                                                <Setter TargetName="buttonView" Property="RenderTransformOrigin" Value="0.5,0"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Path=Button}" Value="DPadLeft">
+                                                <Setter TargetName="shape_Ellipse" Property="Visibility" Value="Collapsed"/>
+                                                <Setter TargetName="shape_ArrowLeft" Property="Visibility" Value="Visible"/>
+                                                <Setter TargetName="buttonView" Property="RenderTransformOrigin" Value="1,0.5"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Path=Button}" Value="DPadRight">
+                                                <Setter TargetName="shape_Ellipse" Property="Visibility" Value="Collapsed"/>
+                                                <Setter TargetName="shape_ArrowRight" Property="Visibility" Value="Visible"/>
+                                                <Setter TargetName="buttonView" Property="RenderTransformOrigin" Value="0,0.5"/>
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </ContentPresenter.ContentTemplate>
+                            </ContentPresenter>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="EditorControlStyle" TargetType="{x:Type HeaderedContentControl}">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="#30151515"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type HeaderedContentControl}">
+                        <Border x:Name="bd" SnapsToDevicePixels="True" CornerRadius="3"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                            <Grid Margin="{TemplateBinding Padding}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <ContentPresenter x:Name="header" Margin="0,0,0,11"
+                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                    Content="{TemplateBinding Header}"
+                                    ContentStringFormat="{TemplateBinding HeaderStringFormat}"
+                                    HorizontalAlignment="Left" VerticalAlignment="Center"
+                                    TextElement.FontWeight="Bold"/>
+                                <Rectangle Height="1" VerticalAlignment="Bottom"
+                                    Fill="{TemplateBinding BorderBrush}"/>
+                                <ContentPresenter x:Name="content" Grid.Row="1" Margin="0,10,0,0"
+                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                    Content="{TemplateBinding Content}"
+                                    ContentStringFormat="{TemplateBinding ContentStringFormat}"
+                                    ContentTemplate="{TemplateBinding ContentTemplate}"
+                                    ContentTemplateSelector="{TemplateBinding ContentTemplateSelector}"/>
+                            </Grid>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <DataTemplate x:Key="GamepadEditorDataTemplate" DataType="{x:Type xinput2:XGamepad}">
+            <StackPanel>
+                <CheckBox Content="Enable Input"
+                    IsChecked="{Binding IsEnabled, Mode=TwoWay}">
+                    <CheckBox.ToolTip>
+                        <TextBlock MaxWidth="400" TextWrapping="Wrap">
+                            <Bold>Enable or disable the gamepad input</Bold>
+                            <LineBreak/>
+                            Uncheck this to bypass gamepad input state updates 
+                            from the XInput device, stopping event triggering. This feature 
+                            can be useful in scenarios where you need to stop handling 
+                            user input, but don't want to setup that logic yourself. 
+                            This changes the value of <Bold>XGamepad.IsEnabled</Bold> property.
+                        </TextBlock>
+                    </CheckBox.ToolTip>
+                </CheckBox>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="JoystickEditorDataTemplate" DataType="{x:Type xinput:Joystick}">
+            <DataTemplate.Resources>
+                <converters:OuterDeadZoneConverter x:Key="OuterDeadZoneConverter"/>
+                <converters:TimeSpanMillisecondsConverter x:Key="TimeSpanMillisecondsConverter"/>
+            </DataTemplate.Resources>
+            <StackPanel>
+                <Grid x:Name="inverters">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <CheckBox Grid.Column="0" Content="Invert X"
+                        IsChecked="{Binding InvertX, Mode=TwoWay}">
+                        <CheckBox.ToolTip>
+                            <TextBlock MaxWidth="400" TextWrapping="Wrap">
+                                <Bold>Invert joystick horizontal axis</Bold>
+                                <LineBreak/>
+                                Check this to invert the horizontal axis of the joystick.
+                                Left will be right and right will be left. This changes the 
+                                value of <Bold>Joystick.InvertX</Bold> property.
+                            </TextBlock>
+                        </CheckBox.ToolTip>
+                    </CheckBox>
+                    <CheckBox Grid.Column="2" Content="Invert Y"
+                        IsChecked="{Binding InvertY, Mode=TwoWay}">
+                        <CheckBox.ToolTip>
+                            <TextBlock MaxWidth="400" TextWrapping="Wrap">
+                                <Bold>Invert joystick vertical axis</Bold>
+                                <LineBreak/>
+                                Check this to invert the vertical axis of the joystick.
+                                Up will be down and down will be up. This changes the 
+                                value of <Bold>Joystick.InvertY</Bold> property.
+                            </TextBlock>
+                        </CheckBox.ToolTip>
+                    </CheckBox>
+                </Grid>
+                <Grid x:Name="deadZones" Margin="0,10,0,0" Height="30">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" MinWidth="30"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto" MinWidth="30"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="{Binding InnerDeadZone, StringFormat=P0}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        FontSize="12"/>
+                    <controls:RangeSlider Grid.Column="1" Margin="5,0"
+                        Minimum="0" Maximum="1" Step="0.001"
+                        From="{Binding InnerDeadZone}" 
+                        To="{Binding OuterDeadZone, Converter={StaticResource OuterDeadZoneConverter}}"
+                        Opacity="0.8">
+                        <controls:RangeSlider.ToolTip>
+                            <TextBlock MaxWidth="400" TextWrapping="Wrap">
+                                <Bold>Joystick circular dead-zones</Bold>
+                                <LineBreak/>
+                                Set the inner and outer circular dead-zone, using the sliding handles.
+                                Inner dead-zone (left handle) specifies the area at the center
+                                of the joystick that will be ignored. Outer dead-zone (right handle)
+                                refers to the area on the external edge of the joystick that will be
+                                ignored. The middle area is the effective range, which represents 
+                                the usable joystick area. This changes the value of 
+                                <Bold>Joystick.InnerDeadZone</Bold> and <Bold>Joystick.OuterDeadZone</Bold> 
+                                properties.
+                            </TextBlock>
+                        </controls:RangeSlider.ToolTip>
+                    </controls:RangeSlider>
+                    <TextBlock Grid.Column="2" Text="{Binding OuterDeadZone, StringFormat='P0'}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        FontSize="12"/>
+                </Grid>
+                <Grid Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" MinWidth="50"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.ColumnSpan="2" Margin="0,0,0,2" TextTrimming="CharacterEllipsis">
+                        Smoothing Factor
+                    </TextBlock>
+                    <TextBlock Grid.Row="1" Text="{Binding SmoothingFactor, StringFormat='P0'}"
+                        FontSize="12"/>
+                    <Slider Grid.Column="1" Grid.Row="1" Margin="10,0,0,0" Minimum="0" Maximum="1" SmallChange="0.01"
+                        Value="{Binding SmoothingFactor, Mode=TwoWay}">
+                        <Slider.ToolTip>
+                            <TextBlock MaxWidth="400" TextWrapping="Wrap">
+                                <Bold>How much smoothing is applied</Bold>
+                                <LineBreak/>
+                                This specifies how much of the smoothed signal will be used
+                                as the joystick's effective position. This is a linear interpolation 
+                                between the original (0%) and the smoothed (100%) signal.
+                            </TextBlock>
+                        </Slider.ToolTip>
+                    </Slider>
+                    <TextBlock Grid.Row="2" Grid.ColumnSpan="2" Margin="0,10,0,2" TextTrimming="CharacterEllipsis">
+                        Smoothing Sampling Period
+                    </TextBlock>
+                    <TextBlock Grid.Row="3" Text="{Binding SmoothingSamplePeriod.TotalMilliseconds, StringFormat='0.0ms'}"
+                        FontSize="12"/>
+                    <Slider Grid.Column="1" Grid.Row="3" Margin="10,0,0,0" Minimum="0" Maximum="1000" SmallChange="10"
+                        Value="{Binding SmoothingSamplePeriod, Mode=TwoWay, 
+                                Converter={StaticResource TimeSpanMillisecondsConverter}}">
+                        <Slider.ToolTip>
+                            <TextBlock MaxWidth="400" TextWrapping="Wrap">
+                                <Bold>For how much time the joystick movement will be registered</Bold>
+                                <LineBreak/>
+                                The joystick's smoothing algorithm registers the joystick 
+                                movement to smooth fast movements. Movements that are faster 
+                                than the specified amount of time will be fully smoothed.
+                                The greater this time period is, the slower the joystick movements 
+                                will get, making the joystick less responsive. This is usually 
+                                used to prevent fast movements in high precision movement tasks.
+                            </TextBlock>
+                        </Slider.ToolTip>
+                    </Slider>
+                </Grid>
+                <Grid Margin="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Margin="0,0,0,2" TextTrimming="CharacterEllipsis">
+                        X Axis Modifier Function
+                    </TextBlock>
+                    <ComboBox Grid.Row="1" Padding="5"
+                        ItemsSource="{x:Static local:MainWindow.ModifierFunctions}"
+                        SelectedValue="{Binding XModifierFunction}"
+                        SelectedValuePath="Function">
+                        <ComboBox.ToolTip>
+                            <TextBlock MaxWidth="400" TextWrapping="Wrap">
+                                <Bold>Function used to modify the joystick's horizontal axis</Bold>
+                                <LineBreak/>
+                                The functions included here are just some simple static functions 
+                                provided by the API, for feature previewing purposes. More functions 
+                                are available, that can accept parameters, and you can create your 
+                                custom ones. Some of the use cases of modifier functions include 
+                                applying joystick sensitivity, axis response mapping and axis-based 
+                                dead-zones.
+                            </TextBlock>
+                        </ComboBox.ToolTip>
+                    </ComboBox>
+                </Grid>
+                <Grid Margin="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Margin="0,0,0,2" TextTrimming="CharacterEllipsis">
+                        Y Axis Modifier Function
+                    </TextBlock>
+                    <ComboBox Grid.Row="1" Padding="5"
+                        ItemsSource="{x:Static local:MainWindow.ModifierFunctions}"
+                        SelectedValue="{Binding YModifierFunction}"
+                        SelectedValuePath="Function">
+                        <ComboBox.ToolTip>
+                            <TextBlock MaxWidth="400" TextWrapping="Wrap">
+                                <Bold>Function used to modify the joystick's vertical axis</Bold>
+                                <LineBreak/>
+                                The functions included here are just some simple static functions 
+                                provided by the API, for feature previewing purposes. More functions 
+                                are available, that can accept parameters, and you can create your 
+                                custom ones. Some of the use cases of modifier functions include 
+                                applying joystick sensitivity, axis response mapping and axis-based 
+                                dead-zones.
+                            </TextBlock>
+                        </ComboBox.ToolTip>
+                    </ComboBox>
+                </Grid>
+                <Grid Margin="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Margin="0,0,0,2" TextTrimming="CharacterEllipsis">
+                        Radius Modifier Function
+                    </TextBlock>
+                    <ComboBox Grid.Row="1" Padding="5"
+                        ItemsSource="{x:Static local:MainWindow.ModifierFunctions}"
+                        SelectedValue="{Binding RadiusModifierFunction}"
+                        SelectedValuePath="Function">
+                        <ComboBox.ToolTip>
+                            <TextBlock MaxWidth="400" TextWrapping="Wrap">
+                                <Bold>Function used to modify the joystick radius</Bold>
+                                <LineBreak/>
+                                The functions included here are just some simple static functions 
+                                provided by the API, for feature previewing purposes. More functions 
+                                are available, that can accept parameters, and you can create your 
+                                custom ones. Some of the use cases of modifier functions include 
+                                applying joystick sensitivity and axis response mapping.
+                            </TextBlock>
+                        </ComboBox.ToolTip>
+                    </ComboBox>
+                </Grid>
+                <Grid Margin="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Margin="0,0,0,2" TextTrimming="CharacterEllipsis">
+                        Angle Modifier Function
+                    </TextBlock>
+                    <ComboBox Grid.Row="1" Padding="5"
+                        ItemsSource="{x:Static local:MainWindow.ModifierFunctions}"
+                        SelectedValue="{Binding AngleModifierFunction}"
+                        SelectedValuePath="Function">
+                        <ComboBox.ToolTip>
+                            <TextBlock MaxWidth="400" TextWrapping="Wrap">
+                                <Bold>Function used to modify the joystick angle</Bold>
+                                <LineBreak/>
+                                The functions included here are just some simple static functions 
+                                provided by the API, for feature previewing purposes. More functions 
+                                are available, that can accept parameters, and you can create your 
+                                custom ones. Some of the use cases of modifier functions include 
+                                applying joystick sensitivity and axis response mapping.
+                            </TextBlock>
+                        </ComboBox.ToolTip>
+                    </ComboBox>
+                </Grid>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="TriggerEditorDataTemplate" DataType="{x:Type xinput:Trigger}">
+            <DataTemplate.Resources>
+                <converters:OuterDeadZoneConverter x:Key="OuterDeadZoneConverter"/>
+                <converters:TimeSpanMillisecondsConverter x:Key="TimeSpanMillisecondsConverter"/>
+            </DataTemplate.Resources>
+            <StackPanel>
+                <CheckBox Content="Invert"
+                    IsChecked="{Binding IsInverted, Mode=TwoWay}">
+                    <CheckBox.ToolTip>
+                        <TextBlock MaxWidth="400" TextWrapping="Wrap">
+                            <Bold>Invert trigger axis</Bold>
+                            <LineBreak/>
+                            Check this to invert the axis of the joystick. This changes 
+                            the value of <Bold>Trigger.IsInverted</Bold> property.
+                        </TextBlock>
+                    </CheckBox.ToolTip>
+                </CheckBox>
+                <Grid x:Name="deadZones" Margin="0,10,0,0" Height="30">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" MinWidth="30"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto" MinWidth="30"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="{Binding InnerDeadZone, StringFormat=P0}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        FontSize="12"/>
+                    <controls:RangeSlider Grid.Column="1" Margin="5,0"
+                        Minimum="0" Maximum="1" Step="0.001"
+                        From="{Binding InnerDeadZone}" 
+                        To="{Binding OuterDeadZone, Converter={StaticResource OuterDeadZoneConverter}}"
+                        Opacity="0.8">
+                        <controls:RangeSlider.ToolTip>
+                            <TextBlock MaxWidth="400" TextWrapping="Wrap">
+                                <Bold>Trigger dead-zones</Bold>
+                                <LineBreak/>
+                                Set the inner and outer dead-zone, using the sliding handles.
+                                Inner dead-zone (left handle) specifies the area at the beginning
+                                of the trigger that will be ignored. Outer dead-zone (right handle)
+                                refers to the area on the ending of the trigger that will be
+                                ignored. The middle area is the effective range, which represents 
+                                the usable trigger area. This changes the value of 
+                                <Bold>Trigger.InnerDeadZone</Bold> and <Bold>Trigger.OuterDeadZone</Bold> 
+                                properties.
+                            </TextBlock>
+                        </controls:RangeSlider.ToolTip>
+                    </controls:RangeSlider>
+                    <TextBlock Grid.Column="2" Text="{Binding OuterDeadZone, StringFormat='P0'}"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        FontSize="12"/>
+                </Grid>
+                <Grid Margin="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Margin="0,0,0,2" TextTrimming="CharacterEllipsis">
+                        Axis Modifier Function
+                    </TextBlock>
+                    <ComboBox Grid.Row="1" Padding="5"
+                        ItemsSource="{x:Static local:MainWindow.ModifierFunctions}"
+                        SelectedValue="{Binding ModifierFunction}"
+                        SelectedValuePath="Function">
+                        <ComboBox.ToolTip>
+                            <TextBlock MaxWidth="400" TextWrapping="Wrap">
+                                <Bold>Function used to modify the trigger's axis value</Bold>
+                                <LineBreak/>
+                                The functions included here are just some simple static functions 
+                                provided by the API, for feature previewing purposes. More functions 
+                                are available, that can accept parameters, and you can create your 
+                                custom ones. Some of the use cases of modifier functions include 
+                                applying trigger sensitivity and axis response mapping.
+                            </TextBlock>
+                        </ComboBox.ToolTip>
+                    </ComboBox>
+                </Grid>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type poco:ModifierFunctionPoco}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Border x:Name="functionBd" Margin="0,0,10,0" Width="40" CornerRadius="2"
+                    Height="{Binding RelativeSource={RelativeSource Mode=Self}, Path=ActualWidth}"
+                    Background="#F0F0F0" BorderBrush="#C0C0C0" BorderThickness="1"
+                    SnapsToDevicePixels="True"
+                    ToolTipService.Placement="Left" ToolTipService.HorizontalOffset="-10"
+                    ToolTipService.InitialShowDelay="100" ToolTipService.ShowDuration="30000">
+                    <controls:ModifierFunctionView x:Name="functionView" Function="{Binding Function}"
+                        LineBrush="#40A0FF" PlotLinesBrush="#40252525"/>
+                    <Border.ToolTip>
+                        <Border Width="280"
+                            Height="{Binding Path=ActualWidth, RelativeSource={RelativeSource Mode=Self}}"
+                            Background="#F0F0F0" BorderBrush="#C0C0C0" BorderThickness="1"
+                            SnapsToDevicePixels="True">
+                            <controls:ModifierFunctionView Function="{Binding Function}"
+                            LineBrush="#40A0FF" PlotLinesBrush="#40252525"/>
+                        </Border>
+                    </Border.ToolTip>
+                </Border>
+                <TextBlock Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center"
+                    Text="{Binding DisplayName}" TextWrapping="Wrap"/>
+            </Grid>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding Function}" Value="{x:Null}">
+                    <Setter TargetName="functionView" Property="Visibility" Value="Collapsed"/>
+                    <Setter TargetName="functionBd" Property="Opacity" Value="0.5"/>
+                    <Setter TargetName="functionBd" Property="ToolTip" Value="{x:Null}"/>
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
+    </Window.Resources>
+    <Grid x:Name="LayoutRoot">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!--#region Gamepad preview panel -->
+        <Border Grid.Column="0" Background="#F0F0F0" SnapsToDevicePixels="True">
+            <Grid VerticalAlignment="Center">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="0.5*"/>
+                </Grid.RowDefinitions>
+
+                <Border x:Name="deviceSelectionPanel" Grid.Row="0" 
+                    Margin="0,30,0,0" SnapsToDevicePixels="True">
+                    <StackPanel Orientation="Vertical"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        TextElement.Foreground="#525252">
+                        <ListBox SelectionMode="Single" Margin="7" 
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            ItemsSource="{Binding ElementName=window, Path=DeviceManager}"
+                            SelectedValue="{Binding ElementName=window, Path=Gamepad.Device, Mode=TwoWay}"
+                            ToolTipService.InitialShowDelay="1200">
+                            <ListBox.ToolTip>
+                                <TextBlock MaxWidth="400" TextWrapping="Wrap">
+                                    <Bold>XInput device user</Bold>
+                                    <LineBreak/>
+                                    XInput supports up to four simultaneously connected devices 
+                                    on the system. Here, you can select which device you wish 
+                                    to use as your gamepad on the application. Connected devices
+                                    are displayed with a green icon.
+                                </TextBlock>
+                            </ListBox.ToolTip>
+                            <ListBox.Style>
+                                <Style TargetType="{x:Type ListBox}">
+                                    <Setter Property="Background" Value="#40FFFFFF"/>
+                                    <Setter Property="Foreground" Value="#505050"/>
+                                    <Setter Property="BorderBrush" Value="#10151515"/>
+                                    <Setter Property="BorderThickness" Value="2"/>
+                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                    <Setter Property="Padding" Value="4"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="{x:Type ListBox}">
+                                                <Border Background="{TemplateBinding Background}"
+                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                    CornerRadius="10" SnapsToDevicePixels="True">
+                                                    <ItemsPresenter Margin="{TemplateBinding Padding}"
+                                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.Style>
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="{x:Type ListBoxItem}">
+                                    <Setter Property="OverridesDefaultStyle" Value="True"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="Foreground" Value="#505050"/>
+                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="2"/>
+                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                    <Setter Property="Padding" Value="12,7"/>
+                                    <Setter Property="Margin" Value="2"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                                                <Grid SnapsToDevicePixels="True">
+                                                    <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                                        CornerRadius="5">
+                                                    </Border>
+                                                    <Border x:Name="highlight" Background="#0A151515" BorderBrush="#18151515"
+                                                        BorderThickness="{Binding ElementName=bd, Path=BorderThickness}"
+                                                        CornerRadius="{Binding ElementName=bd, Path=CornerRadius}"
+                                                        IsHitTestVisible="False" Opacity="0"/>
+                                                    <Border Margin="{Binding ElementName=bd, Path=BorderThickness}">
+                                                        <ContentPresenter x:Name="content"
+                                                            Margin="{TemplateBinding Padding}"
+                                                            Content="{TemplateBinding Content}"
+                                                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                            ContentTemplateSelector="{TemplateBinding ContentTemplateSelector}"
+                                                            ContentStringFormat="{TemplateBinding ContentStringFormat}"
+                                                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                            TextElement.Foreground="{TemplateBinding Foreground}"
+                                                            Focusable="False"/>
+                                                    </Border>
+                                                </Grid>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsSelected" Value="True">
+                                                        <Setter TargetName="bd" Property="Background" Value="#00FFFFFF"/>
+                                                        <Setter TargetName="bd" Property="BorderBrush" Value="#40A0FF"/>
+                                                        <Setter TargetName="bd" Property="Effect">
+                                                            <Setter.Value>
+                                                                <DropShadowEffect ShadowDepth="0" Color="#40A0FF"
+                                                                    Opacity="0.5" BlurRadius="12"/>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Trigger>
+                                                    <Trigger Property="IsSelected" Value="False">
+                                                        <Setter Property="Foreground" Value="#B0505050"/>
+                                                    </Trigger>
+                                                    <MultiTrigger>
+                                                        <MultiTrigger.Conditions>
+                                                            <Condition Property="IsMouseOver" Value="True"/>
+                                                            <Condition Property="IsSelected" Value="False"/>
+                                                        </MultiTrigger.Conditions>
+                                                        <Setter TargetName="highlight" Property="Opacity" Value="1"/>
+                                                    </MultiTrigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="{x:Type xinput2:XInputDevice}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Ellipse x:Name="connectionStateIcon" Fill="#FF2020" Opacity="0.65"
+                                            Width="10" Height="10" Margin="2,4,7,2"
+                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <ContentPresenter x:Name="content" Grid.Column="1"
+                                            Content="{Binding UserIndex}"
+                                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                            <Setter TargetName="connectionStateIcon" Property="Fill" Value="#20FF20"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </StackPanel>
+                </Border>
+
+                <Grid x:Name="gamepadGrid" Grid.Row="1" Margin="0,30,0,0" VerticalAlignment="Center">
+                    <Grid.Background>
+                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                            <GradientStop Offset="0" Color="#F0F0F0"/>
+                            <GradientStop Offset="0.75" Color="#B0B0B0"/>
+                            <GradientStop Offset="0.8" Color="#CACACA"/>
+                            <GradientStop Offset="1" Color="#F0F0F0"/>
+                        </LinearGradientBrush>
+                    </Grid.Background>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Viewbox x:Name="controllerPreview" Grid.Column="1" Stretch="Uniform" Width="700"
+                        RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False" Opacity="0">
+                        <Viewbox.RenderTransform>
+                            <ScaleTransform x:Name="controllerPreviewScale"
+                                ScaleY="{Binding Path=ScaleX, RelativeSource={RelativeSource Mode=Self}}"/>
+                        </Viewbox.RenderTransform>
+                        <Viewbox.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard BeginTime="00:00:00.250">
+                                        <DoubleAnimation Storyboard.TargetName="controllerPreview"
+                                            Storyboard.TargetProperty="Opacity"
+                                            To="1" Duration="00:00:00.900" FillBehavior="HoldEnd">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="controllerPreviewScale"
+                                            Storyboard.TargetProperty="ScaleX"
+                                            From="1.5" Duration="00:00:00.900">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Viewbox.Triggers>
+                        <Canvas Width="700" Height="500">
+                            <Image x:Name="controllerImage" Source="/Assets/Images/XboxController.png" 
+                                Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"
+                                Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource 
+                                        Mode=FindAncestor, AncestorType={x:Type Canvas}}}"
+                                Height="{Binding Path=ActualHeight, RelativeSource={RelativeSource 
+                                        Mode=FindAncestor, AncestorType={x:Type Canvas}}}"/>
+                            <Canvas x:Name="controllerButtons">
+                                <ContentControl x:Name="controllerButton_A"
+                                    Content="{Binding ElementName=window, Path=Gamepad.Buttons.A}"
+                                    Canvas.Left="454" Canvas.Top="184" Width="45" Height="45"
+                                    Style="{StaticResource ButtonPresenterStyle}"/>
+                                <ContentControl x:Name="controllerButton_B"
+                                    Content="{Binding ElementName=window, Path=Gamepad.Buttons.B}"
+                                    Canvas.Left="488" Canvas.Top="154" Width="43" Height="43"
+                                    Style="{StaticResource ButtonPresenterStyle}"/>
+                                <ContentControl x:Name="controllerButton_X"
+                                    Content="{Binding ElementName=window, Path=Gamepad.Buttons.X}"
+                                    Canvas.Left="421" Canvas.Top="152" Width="44" Height="44"
+                                    Style="{StaticResource ButtonPresenterStyle}"/>
+                                <ContentControl x:Name="controllerButton_Y"
+                                    Canvas.Left="455" Canvas.Top="119" Width="44" Height="44"
+                                    Content="{Binding ElementName=window, Path=Gamepad.Buttons.Y}"
+                                    Style="{StaticResource ButtonPresenterStyle}"/>
+                                <ContentControl x:Name="controllerButton_Start"
+                                    Canvas.Left="369" Canvas.Top="156" Width="35" Height="35"
+                                    Content="{Binding ElementName=window, Path=Gamepad.Buttons.Start}"
+                                    Style="{StaticResource ButtonPresenterStyle}"/>
+                                <ContentControl x:Name="controllerButton_Back"
+                                    Canvas.Left="298" Canvas.Top="156" Width="35" Height="35"
+                                    Content="{Binding ElementName=window, Path=Gamepad.Buttons.Back}"
+                                    Style="{StaticResource ButtonPresenterStyle}"/>
+                                <ContentControl x:Name="controllerButton_LS"
+                                    Canvas.Left="190" Canvas.Top="138" Width="73" Height="70"
+                                    Content="{Binding ElementName=window, Path=Gamepad.Buttons.LS}"
+                                    Style="{StaticResource ButtonPresenterStyle}"/>
+                                <ContentControl x:Name="controllerButton_RS"
+                                    Canvas.Left="379" Canvas.Top="211" Width="73" Height="72"
+                                    Content="{Binding ElementName=window, Path=Gamepad.Buttons.RS}"
+                                    Style="{StaticResource ButtonPresenterStyle}"/>
+                                <ContentControl x:Name="controllerButton_DPadUp"
+                                    Canvas.Left="268" Canvas.Top="209" Width="38" Height="30"
+                                    Content="{Binding ElementName=window, Path=Gamepad.Buttons.DPadUp}"
+                                    Style="{StaticResource ButtonPresenterStyle}"/>
+                                <ContentControl x:Name="controllerButton_DPadDown"
+                                    Canvas.Left="268" Canvas.Top="268" Width="38" Height="29"
+                                    Content="{Binding ElementName=window, Path=Gamepad.Buttons.DPadDown}"
+                                    Style="{StaticResource ButtonPresenterStyle}"/>
+                                <ContentControl x:Name="controllerButton_DPadLeft"
+                                    Canvas.Left="242" Canvas.Top="234" Width="30" Height="38"
+                                    Content="{Binding ElementName=window, Path=Gamepad.Buttons.DPadLeft}"
+                                    Style="{StaticResource ButtonPresenterStyle}"/>
+                                <ContentControl x:Name="controllerButton_DPadRight"
+                                    Canvas.Left="301" Canvas.Top="234" Width="30" Height="38"
+                                    Content="{Binding ElementName=window, Path=Gamepad.Buttons.DPadRight}"
+                                    Style="{StaticResource ButtonPresenterStyle}"/>
+                                <ContentControl x:Name="controllerButton_LB"
+                                    Canvas.Left="200" Canvas.Top="75" Width="33" Height="33"
+                                    Content="{Binding ElementName=window, Path=Gamepad.Buttons.LB}"
+                                    Style="{StaticResource ButtonPresenterStyle}"/>
+                                <ContentControl x:Name="controllerButton_RB"
+                                    Canvas.Left="468" Canvas.Top="75" Width="33" Height="33"
+                                    Content="{Binding ElementName=window, Path=Gamepad.Buttons.RB}"
+                                    Style="{StaticResource ButtonPresenterStyle}"/>
+                            </Canvas>
+                        </Canvas>
+                    </Viewbox>
+
+                    <StackPanel x:Name="triggersPanel" Grid.Column="1" Orientation="Horizontal" 
+                        Margin="15" HorizontalAlignment="Center" VerticalAlignment="Top" Opacity="0">
+                        <StackPanel.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard BeginTime="00:00:00.600">
+                                        <DoubleAnimation Storyboard.TargetName="leftTriggerTranslate"
+                                             Storyboard.TargetProperty="X"
+                                             From="-250" Duration="00:00:00.650">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="rightTriggerTranslate"
+                                             Storyboard.TargetProperty="X"
+                                             From="250" Duration="00:00:00.650">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="triggersPanel"
+                                             Storyboard.TargetProperty="Opacity"
+                                             To="1" Duration="00:00:00.650" FillBehavior="HoldEnd">
+                                            <DoubleAnimation.EasingFunction>
+                                                <QuadraticEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </StackPanel.Triggers>
+                        <HeaderedContentControl Style="{StaticResource TriggerPresenterStyle}"
+                            Width="120" Margin="0,0,50,0"
+                            Header="LEFT TRIGGER"
+                            Content="{Binding ElementName=window, Path=Gamepad.LeftTrigger, Mode=OneWay}">
+                            <HeaderedContentControl.RenderTransform>
+                                <TranslateTransform x:Name="leftTriggerTranslate"/>
+                            </HeaderedContentControl.RenderTransform>
+                        </HeaderedContentControl>
+                        <HeaderedContentControl Style="{StaticResource TriggerPresenterStyle}"
+                            Width="120" Margin="50,0,0,0"
+                            Header="RIGHT TRIGGER"
+                            Content="{Binding ElementName=window, Path=Gamepad.RightTrigger, Mode=OneWay}">
+                            <HeaderedContentControl.RenderTransform>
+                                <TranslateTransform x:Name="rightTriggerTranslate"/>
+                            </HeaderedContentControl.RenderTransform>
+                        </HeaderedContentControl>
+                    </StackPanel>
+
+                    <StackPanel x:Name="joysticksPanel" Grid.Column="1" Orientation="Horizontal" Opacity="0"
+                        HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="15">
+                        <StackPanel.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard BeginTime="00:00:00.600">
+                                        <DoubleAnimation Storyboard.TargetName="joysticksPanel"
+                                             Storyboard.TargetProperty="Opacity"
+                                             To="1" Duration="00:00:00.500" FillBehavior="HoldEnd">
+                                            <DoubleAnimation.EasingFunction>
+                                                <QuadraticEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="leftJoystickTranslate"
+                                             Storyboard.TargetProperty="X"
+                                             From="-150" Duration="00:00:00.500">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="leftJoystickTranslate"
+                                             Storyboard.TargetProperty="Y"
+                                             From="70" Duration="00:00:00.500">
+                                            <DoubleAnimation.EasingFunction>
+                                                <QuarticEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="rightJoystickTranslate"
+                                             Storyboard.TargetProperty="X"
+                                             From="150" Duration="00:00:00.500">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="rightJoystickTranslate"
+                                             Storyboard.TargetProperty="Y"
+                                             From="70" Duration="00:00:00.500">
+                                            <DoubleAnimation.EasingFunction>
+                                                <QuarticEase EasingMode="EaseOut"/>
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </StackPanel.Triggers>
+                        <HeaderedContentControl
+                            Style="{StaticResource JoystickPresenterStyle}"
+                            Width="120"
+                            HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                            Header="LEFT STICK"
+                            Content="{Binding ElementName=window, Path=Gamepad.LeftJoystick, Mode=OneWay}">
+                            <HeaderedContentControl.RenderTransform>
+                                <TranslateTransform x:Name="leftJoystickTranslate"/>
+                            </HeaderedContentControl.RenderTransform>
+                        </HeaderedContentControl>
+                        <HeaderedContentControl
+                            Style="{StaticResource JoystickPresenterStyle}"
+                            Margin="15,0,0,0" Width="120"
+                            HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                            Header="RIGHT STICK"
+                            Content="{Binding ElementName=window, Path=Gamepad.RightJoystick, Mode=OneWay}">
+                            <HeaderedContentControl.RenderTransform>
+                                <TranslateTransform x:Name="rightJoystickTranslate"/>
+                            </HeaderedContentControl.RenderTransform>
+                        </HeaderedContentControl>
+                    </StackPanel>
+
+                </Grid>
+
+            </Grid>
+        </Border>
+        <!--#endregion-->
+
+        <!--#region Gamepad configuration panel -->
+        <Grid Grid.Column="1" MinWidth="320"
+            Background="#F0F0F0">
+            <Border Height="{Binding ElementName=gamepadGrid, Path=ActualHeight}"
+                SnapsToDevicePixels="True">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                        <GradientStop Offset="0" Color="#F0F0F0"/>
+                        <GradientStop Offset="0.88" Color="#D0D0D0"/>
+                        <GradientStop Offset="1" Color="#F0F0F0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+            <Border Background="#10282828" BorderBrush="#40151515" BorderThickness="1,0,0,0"
+                SnapsToDevicePixels="True">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="5"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock TextAlignment="Center" TextWrapping="Wrap"
+                        FontSize="20" FontWeight="Bold" Margin="10">
+                        GAMEPAD SETTINGS
+                    </TextBlock>
+                    <Rectangle Grid.Row="1" Height="1" Fill="#40151515"
+                        VerticalAlignment="Center" SnapsToDevicePixels="True"/>
+                    <ScrollViewer Grid.Row="2" Padding="0" 
+                        HorizontalScrollBarVisibility="Disabled"
+                        VerticalScrollBarVisibility="Auto">
+                        <StackPanel x:Name="editorPanel" Orientation="Vertical" 
+                            VerticalAlignment="Top" Margin="10">
+                            <HeaderedContentControl Header="General"
+                                Style="{StaticResource EditorControlStyle}"
+                                ContentTemplate="{StaticResource GamepadEditorDataTemplate}"
+                                Content="{Binding ElementName=window, Path=Gamepad}"/>
+                            <HeaderedContentControl Margin="0,10,0,0" Header="Left joystick"
+                                Style="{StaticResource EditorControlStyle}"
+                                ContentTemplate="{StaticResource JoystickEditorDataTemplate}"
+                                Content="{Binding ElementName=window, Path=Gamepad.LeftJoystick}"/>
+                            <HeaderedContentControl Margin="0,10,0,0" Header="Right joystick"
+                                Style="{StaticResource EditorControlStyle}"
+                                ContentTemplate="{StaticResource JoystickEditorDataTemplate}"
+                                Content="{Binding ElementName=window, Path=Gamepad.RightJoystick}"/>
+                            <HeaderedContentControl Margin="0,10,0,0" Header="Left trigger"
+                                Style="{StaticResource EditorControlStyle}"
+                                ContentTemplate="{StaticResource TriggerEditorDataTemplate}"
+                                Content="{Binding ElementName=window, Path=Gamepad.LeftTrigger}"/>
+                            <HeaderedContentControl Margin="0,10,0,0" Header="Right trigger"
+                                Style="{StaticResource EditorControlStyle}"
+                                ContentTemplate="{StaticResource TriggerEditorDataTemplate}"
+                                Content="{Binding ElementName=window, Path=Gamepad.RightTrigger}"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+        </Grid>
+        <!--#endregion-->
+
+    </Grid>
+</Window>
