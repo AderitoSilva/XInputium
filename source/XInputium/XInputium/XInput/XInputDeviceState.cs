@@ -124,7 +124,7 @@ public readonly struct XInputDeviceState
     /// </summary>
     /// <returns><see langword="true"/> if the device is connected; 
     /// otherwise, <see langword="false"/>.</returns>
-    public bool IsConnected { get; init; }
+    public bool IsConnected { get; }
 
 
     /// <summary>
@@ -139,7 +139,7 @@ public readonly struct XInputDeviceState
     /// method to determine if a specific button is being pressed.
     /// </remarks>
     /// <seealso cref="IsButtonPressed(XButtons)"/>
-    public XButtons Buttons { get; init; }
+    public XButtons Buttons { get; }
 
 
     /// <summary>
@@ -147,7 +147,7 @@ public readonly struct XInputDeviceState
     /// the position of the device's left joystick.
     /// </summary>
     /// <seealso cref="RightJoystick"/>
-    public SlimJoystick LeftJoystick { get; init; }
+    public SlimJoystick LeftJoystick { get; }
 
 
     /// <summary>
@@ -155,7 +155,7 @@ public readonly struct XInputDeviceState
     /// the position of the device's right joystick.
     /// </summary>
     /// <seealso cref="LeftJoystick"/>
-    public SlimJoystick RightJoystick { get; init; }
+    public SlimJoystick RightJoystick { get; }
 
 
     /// <summary>
@@ -163,7 +163,7 @@ public readonly struct XInputDeviceState
     /// the position of the device's left trigger.
     /// </summary>
     /// <seealso cref="RightTrigger"/>
-    public SlimTrigger LeftTrigger { get; init; }
+    public SlimTrigger LeftTrigger { get; }
 
 
     /// <summary>
@@ -171,7 +171,7 @@ public readonly struct XInputDeviceState
     /// the position of the device's right trigger.
     /// </summary>
     /// <seealso cref="LeftTrigger"/>
-    public SlimTrigger RightTrigger { get; init; }
+    public SlimTrigger RightTrigger { get; }
 
 
     /// <summary>
@@ -247,10 +247,7 @@ public readonly struct XInputDeviceState
 
     bool IInputDeviceState.StateEquals(IInputDeviceState state)
     {
-        if (state is not XInputDeviceState xState)
-            return false;
-
-        return Equals(xState);
+        return state is XInputDeviceState xState && Equals(xState);
     }
 
 
