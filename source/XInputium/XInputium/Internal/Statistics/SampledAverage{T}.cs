@@ -4,11 +4,12 @@ using System.Collections.Generic;
 
 namespace XInputium.Internal.Statistics;
 
+// TODO Consider using a circular array, instead of a linked list, for the Sampled Average algorithm. Or, depending on the maximum length, a mix of both.
+
 /// <summary>
-/// Provides an efficient algorithm to determine the 
-/// average value of a collection of values, as these 
-/// values are continuously added. This is an abstract 
-/// class.
+/// Provides an efficient algorithm to determine the average value 
+/// of a collection of values, as these values are continuously added. 
+/// This is an abstract class.
 /// </summary>
 /// <typeparam name="T">Type of the sample values.</typeparam>
 internal abstract class SampledAverage<T>
@@ -106,7 +107,7 @@ internal abstract class SampledAverage<T>
     /// <summary>
     /// Gets a <see cref="bool"/> that indicates if the 
     /// number of sample values in the 
-    /// <see cref="SampledAverage{T}"/> its maximum capacity.
+    /// <see cref="SampledAverage{T}"/> is at its maximum capacity.
     /// </summary>
     /// <remarks>
     /// When the <see cref="SampledAverage{T}"/> is full, any 
@@ -124,8 +125,8 @@ internal abstract class SampledAverage<T>
 
     /// <summary>
     /// Gets a <see cref="bool"/> that indicates if the 
-    /// <see cref="SampledAverage{T}"/> has currently no 
-    /// stored sample values.
+    /// <see cref="SampledAverage{T}"/> has currently no stored 
+    /// sample values.
     /// </summary>
     /// <seealso cref="IsFull"/>
     /// <seealso cref="Count"/>
@@ -204,7 +205,7 @@ internal abstract class SampledAverage<T>
 
 
     /// <summary>
-    /// Adds a new sample to the <see cref="SampledAverage{T}"/>,
+    /// Adds a new sample into the <see cref="SampledAverage{T}"/>,
     /// that has the specified value.
     /// </summary>
     /// <param name="value">The sample value to add.</param>
@@ -229,7 +230,7 @@ internal abstract class SampledAverage<T>
         }
         else
         {
-            // Add a new node.
+            // Create and add a new node.
             node = new(value);
             _samples.AddLast(node);
             _totalSum = SumValue(_totalSum, value);
