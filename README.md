@@ -39,7 +39,7 @@ These are some of the key features of XInputium:
     XGamepad gamepad = new();  // This constructor uses the first connected device it finds.
     gamepad.ButtonPressed += (s, e) => Debug.WriteLine($"Button {e.Button} was pressed.");
     
-    // Call this on every app/game frame.
+    // Call this on every app/game frame. This will update the device state and trigger any events.
     gamepad.Device?.Update();
 
 ## Demo application
