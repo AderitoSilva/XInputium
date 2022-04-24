@@ -71,9 +71,9 @@ public abstract class InputDevice<TState>
     #region Fields
 
     // Static PropertyChangedEventArgs to use for property value changes.
-    private static readonly PropertyChangedEventArgs _ea_HasStateChanged = new(nameof(HasStateChanged));
-    private static readonly PropertyChangedEventArgs _ea_IsConnected = new(nameof(IsConnected));
-    private static readonly PropertyChangedEventArgs _ea_LastUpdateId = new(nameof(LastUpdateId));
+    private static readonly PropertyChangedEventArgs s_EA_HasStateChanged = new(nameof(HasStateChanged));
+    private static readonly PropertyChangedEventArgs s_EA_IsConnected = new(nameof(IsConnected));
+    private static readonly PropertyChangedEventArgs s_EA_LastUpdateId = new(nameof(LastUpdateId));
 
     // Property backing storage fields.
     private TState _previousState;  // Store for the value of PreviousState property.
@@ -260,7 +260,7 @@ public abstract class InputDevice<TState>
         get => _isConnected;
         private set
         {
-            if (SetProperty(ref _isConnected, in value, _ea_IsConnected))
+            if (SetProperty(ref _isConnected, in value, s_EA_IsConnected))
             {
                 if (_isConnected)
                 {
@@ -290,7 +290,7 @@ public abstract class InputDevice<TState>
     public bool HasStateChanged
     {
         get => _hasStateChanged;
-        private set => SetProperty(ref _hasStateChanged, in value, _ea_HasStateChanged);
+        private set => SetProperty(ref _hasStateChanged, in value, s_EA_HasStateChanged);
     }
 
 
@@ -315,7 +315,7 @@ public abstract class InputDevice<TState>
     public long LastUpdateId
     {
         get => _lastUpdateId;
-        private set => SetProperty(ref _lastUpdateId, in value, _ea_LastUpdateId);
+        private set => SetProperty(ref _lastUpdateId, in value, s_EA_LastUpdateId);
     }
 
     #endregion Properties

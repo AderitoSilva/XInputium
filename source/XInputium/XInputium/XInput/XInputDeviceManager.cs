@@ -22,9 +22,8 @@ public class XInputDeviceManager
 
     private const int DevicesCount = 4;  // Number of XInput devices supported by this class.
 
-    private static readonly PropertyChangedEventArgs _defaultPropertyChangedEventArgs = new(null);
-    private static readonly PropertyChangedEventArgs _isAnyDeviceConnectedPropertyChangedEventArgs
-        = new(nameof(IsAnyDeviceConnected));
+    private static readonly PropertyChangedEventArgs s_EA_ = new(null);
+    private static readonly PropertyChangedEventArgs s_EA_IsAnyDeviceConnected = new(nameof(IsAnyDeviceConnected));
 
     private readonly HashSet<XInputDevice> _connectedDevices  // Stores the currently connected devices.
         = new(DevicesCount);
@@ -47,7 +46,7 @@ public class XInputDeviceManager
         UserThree = new(XInputUserIndex.Three);
         UserFour = new(XInputUserIndex.Four);
 
-        foreach (var device in this)
+        foreach (XInputDevice device in this)
         {
             XInputDeviceEventArgs eventArgs = new(device);
             device.Connected += (sender, e) => Device_Connected(sender, eventArgs);
@@ -166,7 +165,7 @@ public class XInputDeviceManager
             if (value != _isAnyDeviceConnected)
             {
                 _isAnyDeviceConnected = value;
-                OnPropertyChanged(_isAnyDeviceConnectedPropertyChangedEventArgs);
+                OnPropertyChanged(s_EA_IsAnyDeviceConnected);
             }
         }
     }
@@ -223,7 +222,7 @@ public class XInputDeviceManager
     /// <seealso cref="PropertyChanged"/>
     protected virtual void OnPropertyChanged(PropertyChangedEventArgs? e)
     {
-        PropertyChanged?.Invoke(this, e ?? _defaultPropertyChangedEventArgs);
+        PropertyChanged?.Invoke(this, e ?? s_EA_);
     }
 
 

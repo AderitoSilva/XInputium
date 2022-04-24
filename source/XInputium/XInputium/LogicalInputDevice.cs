@@ -5,9 +5,8 @@ using System.Diagnostics.CodeAnalysis;
 namespace XInputium;
 
 /// <summary>
-/// Represents a logical input device, that can abstract 
-/// different input devices of the same type. This is 
-/// an abstract class.
+/// Represents a logical input device, that can abstract different input 
+/// devices of the same type. This is an abstract class.
 /// </summary>
 /// <typeparam name="TDevice">Type deriving from 
 /// <see cref="InputDevice{TState}"/>, that's the type of the 
@@ -45,11 +44,11 @@ public abstract class LogicalInputDevice<TDevice, TState>
     #region Fields
 
     // Static PropertyChangedEventArgs fields for property value changes.
-    private static readonly PropertyChangedEventArgs _ea_Device = new(nameof(Device));
-    private static readonly PropertyChangedEventArgs _ea_IsConnected = new(nameof(IsConnected));
-    private static readonly PropertyChangedEventArgs _ea_HasStateChanged = new(nameof(HasStateChanged));
-    private static readonly PropertyChangedEventArgs _ea_FrameTime = new(nameof(FrameTime));
-    private static readonly PropertyChangedEventArgs _ea_IsEnabled = new(nameof(IsEnabled));
+    private static readonly PropertyChangedEventArgs s_EA_Device = new(nameof(Device));
+    private static readonly PropertyChangedEventArgs s_EA_IsConnected = new(nameof(IsConnected));
+    private static readonly PropertyChangedEventArgs s_EA_HasStateChanged = new(nameof(HasStateChanged));
+    private static readonly PropertyChangedEventArgs s_EA_FrameTime = new(nameof(FrameTime));
+    private static readonly PropertyChangedEventArgs s_EA_IsEnabled = new(nameof(IsEnabled));
 
     // Property backing storage fields.
     private TDevice? _device;  // Store for the value of Device property.
@@ -208,7 +207,7 @@ public abstract class LogicalInputDevice<TDevice, TState>
             }
 
             // Notify event listeners.
-            OnPropertyChanged(_ea_Device);
+            OnPropertyChanged(s_EA_Device);
             OnDeviceChanged();
             UpdateInputObject(TimeSpan.Zero);
         }
@@ -231,7 +230,7 @@ public abstract class LogicalInputDevice<TDevice, TState>
         get => _isConnected && Device is not null;
         private set
         {
-            if (SetProperty(ref _isConnected, value, _ea_IsConnected))
+            if (SetProperty(ref _isConnected, value, s_EA_IsConnected))
             {
                 OnIsConnectedChanged();
             }
@@ -247,7 +246,7 @@ public abstract class LogicalInputDevice<TDevice, TState>
     public bool HasStateChanged
     {
         get => _hasStateChanged;
-        private set => SetProperty(ref _hasStateChanged, value, _ea_HasStateChanged);
+        private set => SetProperty(ref _hasStateChanged, value, s_EA_HasStateChanged);
     }
 
 
@@ -263,7 +262,7 @@ public abstract class LogicalInputDevice<TDevice, TState>
     public TimeSpan FrameTime
     {
         get => _frameTime;
-        private set => SetProperty(ref _frameTime, value, _ea_FrameTime);
+        private set => SetProperty(ref _frameTime, value, s_EA_FrameTime);
     }
 
 
@@ -295,7 +294,7 @@ public abstract class LogicalInputDevice<TDevice, TState>
         get => _isEnabled;
         set
         {
-            if (SetProperty(ref _isEnabled, value, _ea_IsEnabled))
+            if (SetProperty(ref _isEnabled, value, s_EA_IsEnabled))
             {
                 if (!_isEnabled)
                 {

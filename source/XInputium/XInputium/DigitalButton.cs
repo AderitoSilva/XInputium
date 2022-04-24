@@ -20,8 +20,8 @@ public class DigitalButton : EventDispatcherObject
     #region Fields
 
     // Static PropertyChangedEventArgs to use for property value changes.
-    private static readonly PropertyChangedEventArgs _ea_IsPressed = new(nameof(IsPressed));
-    private static readonly PropertyChangedEventArgs _ea_Duration = new(nameof(Duration));
+    private static readonly PropertyChangedEventArgs s_EA_IsPressed = new(nameof(IsPressed));
+    private static readonly PropertyChangedEventArgs s_EA_Duration = new(nameof(Duration));
 
     // Property backing storage fields.
     private bool _isPressed = false;  // Store for the value of IsPressed property.
@@ -132,7 +132,7 @@ public class DigitalButton : EventDispatcherObject
         get => _isPressed;
         private set
         {
-            if (SetProperty(ref _isPressed, in value, _ea_IsPressed))
+            if (SetProperty(ref _isPressed, in value, s_EA_IsPressed))
             {
                 OnIsPressedChanged();
             }
@@ -154,7 +154,7 @@ public class DigitalButton : EventDispatcherObject
         {
             if (_duration < TimeSpan.Zero)
                 value = TimeSpan.Zero;
-            if (SetProperty(ref _duration, in value, _ea_Duration))
+            if (SetProperty(ref _duration, in value, s_EA_Duration))
             {
                 OnDurationChanged();
             }

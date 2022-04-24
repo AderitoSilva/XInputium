@@ -54,8 +54,8 @@ public class XGamepad
     #region Fields
 
     // Static PropertyChangedEventArgs to use for property value changes.
-    private static readonly PropertyChangedEventArgs _ea_LeftMotorSpeed = new(nameof(LeftMotorSpeed));
-    private static readonly PropertyChangedEventArgs _ea_RightMotorSpeed = new(nameof(RightMotorSpeed));
+    private static readonly PropertyChangedEventArgs s_EA_LeftMotorSpeed = new(nameof(LeftMotorSpeed));
+    private static readonly PropertyChangedEventArgs s_EA_RightMotorSpeed = new(nameof(RightMotorSpeed));
 
     // Property backing storage fields.
     private float _leftMotorSpeed = 0f;  // Store for the value of LeftMotorSpeed property.
@@ -262,7 +262,7 @@ public class XGamepad
         {
             if (float.IsNaN(value))
                 value = 0f;
-            SetProperty(ref _leftMotorSpeed, in value, _ea_LeftMotorSpeed);
+            SetProperty(ref _leftMotorSpeed, in value, s_EA_LeftMotorSpeed);
         }
     }
 
@@ -288,7 +288,7 @@ public class XGamepad
         {
             if (float.IsNaN(value))
                 value = 0f;
-            SetProperty(ref _rightMotorSpeed, in value, _ea_RightMotorSpeed);
+            SetProperty(ref _rightMotorSpeed, in value, s_EA_RightMotorSpeed);
         }
     }
 

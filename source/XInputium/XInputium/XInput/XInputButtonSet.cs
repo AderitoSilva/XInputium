@@ -19,8 +19,9 @@ public class XInputButtonSet : EventDispatcherObject,
 
     #region Internal types
 
-    private record ButtonAssociation(
-        XInputButton Button, DigitalButtonUpdateCallback UpdateCallback,
+    private sealed record ButtonAssociation(
+        XInputButton Button, 
+        DigitalButtonUpdateCallback UpdateCallback,
         DigitalButtonEventArgs<XInputButton> DigitalButtonEventArgs);
 
     #endregion Internal types
@@ -29,9 +30,9 @@ public class XInputButtonSet : EventDispatcherObject,
     #region Fields
 
     // Static PropertyChangedEventArgs to use for property value changes.
-    private static readonly PropertyChangedEventArgs _ea_Buttons = new(nameof(Buttons));
-    private static readonly PropertyChangedEventArgs _ea_PressedButtonsCount = new(nameof(PressedButtonsCount));
-    private static readonly PropertyChangedEventArgs _ea_IsAnyButtonPressed = new(nameof(IsAnyButtonPressed));
+    private static readonly PropertyChangedEventArgs s_EA_Buttons = new(nameof(Buttons));
+    private static readonly PropertyChangedEventArgs s_EA_PressedButtonsCount = new(nameof(PressedButtonsCount));
+    private static readonly PropertyChangedEventArgs s_EA_IsAnyButtonPressed = new(nameof(IsAnyButtonPressed));
 
     // Property backing storage fields.
     private XButtons _buttons = XButtons.None;  // Store for the value of Buttons property.
@@ -117,7 +118,7 @@ public class XInputButtonSet : EventDispatcherObject,
     public XButtons Buttons
     {
         get => _buttons;
-        private set => SetProperty(ref _buttons, in value, _ea_Buttons);
+        private set => SetProperty(ref _buttons, in value, s_EA_Buttons);
     }
 
 
@@ -276,7 +277,7 @@ public class XInputButtonSet : EventDispatcherObject,
         {
             if (SetProperty(ref _pressedButtonsCount,
                 Math.Clamp(value, 0, _buttonAssociations.Count),
-                _ea_PressedButtonsCount))
+                s_EA_PressedButtonsCount))
             {
                 IsAnyButtonPressed = _pressedButtonsCount > 0;
             }
@@ -292,7 +293,8 @@ public class XInputButtonSet : EventDispatcherObject,
     public bool IsAnyButtonPressed
     {
         get => _isAnyButtonPressed;
-        private set => SetProperty(ref _isAnyButtonPressed, in value, _ea_IsAnyButtonPressed);
+        private set => SetProperty(ref _isAnyButtonPressed, 
+            in value, s_EA_IsAnyButtonPressed);
     }
 
 
@@ -367,7 +369,7 @@ public class XInputButtonSet : EventDispatcherObject,
     /// through the buttons of the <see cref="XInputButtonSet"/>.</returns>
     public IEnumerator<XInputButton> GetEnumerator()
     {
-        foreach (var association in _buttonAssociations.Values)
+        foreach (ButtonAssociation association in _buttonAssociations.Values)
         {
             yield return association.Button;
         }
@@ -391,7 +393,7 @@ public class XInputButtonSet : EventDispatcherObject,
     /// <seealso cref="IsPressed(XButtons)"/>
     public IEnumerable<XInputButton> GetPressedButtons()
     {
-        foreach (var button in this)
+        foreach (XInputButton button in this)
         {
             if (button.IsPressed)
             {
@@ -460,8 +462,7 @@ public class XInputButtonSet : EventDispatcherObject,
 
     private void Button_IsPressedChanged(object? sender, EventArgs e)
     {
-        XInputButton? button = (XInputButton?)sender;
-        if (button is not null
+        if (sender is XInputButton button
             && _buttonAssociations.TryGetValue(button.Button, out ButtonAssociation? association))
         {
             OnButtonStateChanged(association.DigitalButtonEventArgs);
