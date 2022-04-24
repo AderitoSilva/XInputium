@@ -31,6 +31,8 @@ public class Joystick : EventDispatcherObject
     private readonly struct JoystickSample
     {
 
+        public static readonly JoystickSample Zero = new(0f, 0f, TimeSpan.Zero);
+
         public readonly float X;
         public readonly float Y;
         public readonly TimeSpan Time;
@@ -42,6 +44,16 @@ public class Joystick : EventDispatcherObject
             Time = time;
         }
 
+        public static JoystickSample operator +(JoystickSample x, JoystickSample y)
+        {
+            return new JoystickSample(x.X + y.X, x.Y + y.Y, x.Time + y.Time);
+        }
+
+        public static JoystickSample operator -(JoystickSample x, JoystickSample y)
+        {
+            return new JoystickSample(x.X - y.X, x.Y - y.Y, x.Time - y.Time);
+        }
+    
     }
 
 
@@ -55,18 +67,18 @@ public class Joystick : EventDispatcherObject
         }
 
 
-        protected override JoystickSample Zero => new(0f, 0f, TimeSpan.Zero);
+        protected override JoystickSample Zero { get; } = JoystickSample.Zero;
 
 
         protected override JoystickSample SumValue(JoystickSample x, JoystickSample y)
         {
-            return new JoystickSample(x.X + y.X, x.Y + y.Y, x.Time + y.Time);
+            return x + y;
         }
 
 
         protected override JoystickSample SubtractValue(JoystickSample x, JoystickSample y)
         {
-            return new JoystickSample(x.X - y.X, x.Y - y.Y, x.Time - y.Time);
+            return x - y;
         }
 
 
@@ -99,18 +111,18 @@ public class Joystick : EventDispatcherObject
 
     // Static PropertyChangedEventArgs for property changes. This is to avoid instantiating
     // a PropertyChangedEventArgs class whenever the value of a property changes.
-    private static readonly PropertyChangedEventArgs _ea_RawX = new(nameof(RawX));
-    private static readonly PropertyChangedEventArgs _ea_RawY = new(nameof(RawY));
-    private static readonly PropertyChangedEventArgs _ea_RawRadius = new(nameof(RawRadius));
-    private static readonly PropertyChangedEventArgs _ea_RawAngle = new(nameof(RawAngle));
-    private static readonly PropertyChangedEventArgs _ea_IsRawWithinCircle = new(nameof(IsRawWithinCircle));
-    private static readonly PropertyChangedEventArgs _ea_X = new(nameof(X));
-    private static readonly PropertyChangedEventArgs _ea_Y = new(nameof(Y));
-    private static readonly PropertyChangedEventArgs _ea_Angle = new(nameof(Angle));
-    private static readonly PropertyChangedEventArgs _ea_Radius = new(nameof(Radius));
-    private static readonly PropertyChangedEventArgs _ea_Direction = new(nameof(Direction));
-    private static readonly PropertyChangedEventArgs _ea_IsPushed = new(nameof(IsPushed));
-    private static readonly PropertyChangedEventArgs _ea_FrameTime = new(nameof(FrameTime));
+    private static readonly PropertyChangedEventArgs s_EA_RawX = new(nameof(RawX));
+    private static readonly PropertyChangedEventArgs s_EA_RawY = new(nameof(RawY));
+    private static readonly PropertyChangedEventArgs s_EA_RawRadius = new(nameof(RawRadius));
+    private static readonly PropertyChangedEventArgs s_EA_RawAngle = new(nameof(RawAngle));
+    private static readonly PropertyChangedEventArgs s_EA_IsRawWithinCircle = new(nameof(IsRawWithinCircle));
+    private static readonly PropertyChangedEventArgs s_EA_X = new(nameof(X));
+    private static readonly PropertyChangedEventArgs s_EA_Y = new(nameof(Y));
+    private static readonly PropertyChangedEventArgs s_EA_Angle = new(nameof(Angle));
+    private static readonly PropertyChangedEventArgs s_EA_Radius = new(nameof(Radius));
+    private static readonly PropertyChangedEventArgs s_EA_Direction = new(nameof(Direction));
+    private static readonly PropertyChangedEventArgs s_EA_IsPushed = new(nameof(IsPushed));
+    private static readonly PropertyChangedEventArgs s_EA_FrameTime = new(nameof(FrameTime));
 
     // Property backing storage fields.
     private float _rawX = 0f;  // Store for the value of RawX property.
@@ -133,7 +145,7 @@ public class Joystick : EventDispatcherObject
     private ModifierFunction? _yModifierFunction = null;  // Store for the value of YModifierFunction property.
     private ModifierFunction? _radiusModifierFunction = null;  // Store for the value of RadiusModifierFunction property.
     private ModifierFunction? _angleModifierFunction = null;  // Store for the value of AngleModifierFunction property.
-    private TimeSpan _smoothingSamplePeriod = TimeSpan.Zero;  // Store for the value of _SmoothingSamplePeriod property.
+    private TimeSpan _smoothingSamplePeriod = TimeSpan.Zero;  // Store for the value of SmoothingSamplePeriod property.
     private float _smoothingFactor = 0f;  // Store for the value of SmoothingFactor property.
 
     // State keeping fields.
@@ -166,6 +178,7 @@ public class Joystick : EventDispatcherObject
     /// that can be invoked to update the state of the 
     /// <see cref="Joystick"/> instance.</param>
     public Joystick(out JoystickUpdateCallback updateCallback)
+        : this()
     {
         updateCallback = new JoystickUpdateCallback(UpdateRawPosition);
     }
@@ -292,7 +305,7 @@ public class Joystick : EventDispatcherObject
     {
         get => _rawX;
         private set => Invalidate(SetProperty(
-            ref _rawX, InputMath.Clamp11(value), _ea_RawX));
+            ref _rawX, InputMath.Clamp11(value), s_EA_RawX));
     }
 
 
@@ -315,7 +328,7 @@ public class Joystick : EventDispatcherObject
     {
         get => _rawY;
         private set => Invalidate(SetProperty(
-            ref _rawY, InputMath.Clamp11(value), _ea_RawY));
+            ref _rawY, InputMath.Clamp11(value), s_EA_RawY));
     }
 
 
@@ -334,7 +347,7 @@ public class Joystick : EventDispatcherObject
     {
         get => _rawRadius;
         private set => Invalidate(SetProperty(
-            ref _rawRadius, InputMath.Clamp01(value), _ea_RawRadius));
+            ref _rawRadius, InputMath.Clamp01(value), s_EA_RawRadius));
     }
 
 
@@ -365,7 +378,7 @@ public class Joystick : EventDispatcherObject
     {
         get => _rawAngle;
         private set => Invalidate(SetProperty(
-            ref _rawAngle, InputMath.Clamp01(value), _ea_RawAngle));
+            ref _rawAngle, InputMath.Clamp01(value), s_EA_RawAngle));
     }
 
 
@@ -394,7 +407,7 @@ public class Joystick : EventDispatcherObject
     {
         get => _isRawWithinCircle;
         private set => Invalidate(SetProperty(
-            ref _isRawWithinCircle, value, _ea_IsRawWithinCircle));
+            ref _isRawWithinCircle, value, s_EA_IsRawWithinCircle));
     }
 
 
@@ -429,7 +442,7 @@ public class Joystick : EventDispatcherObject
         }
         private set
         {
-            if (SetProperty(ref _x, InputMath.Clamp11(value), _ea_X))
+            if (SetProperty(ref _x, InputMath.Clamp11(value), s_EA_X))
             {
                 OnPositionChanged();
             }
@@ -468,7 +481,7 @@ public class Joystick : EventDispatcherObject
         }
         private set
         {
-            if (SetProperty(ref _y, InputMath.Clamp11(value), _ea_Y))
+            if (SetProperty(ref _y, InputMath.Clamp11(value), s_EA_Y))
             {
                 OnPositionChanged();
             }
@@ -510,7 +523,7 @@ public class Joystick : EventDispatcherObject
         }
         private set
         {
-            if (SetProperty(ref _angle, InputMath.Clamp01(value), _ea_Angle))
+            if (SetProperty(ref _angle, InputMath.Clamp01(value), s_EA_Angle))
             {
                 OnAngleChanged();
             }
@@ -539,7 +552,7 @@ public class Joystick : EventDispatcherObject
         }
         private set
         {
-            if (SetProperty(ref _radius, InputMath.Clamp01(value), _ea_Radius))
+            if (SetProperty(ref _radius, InputMath.Clamp01(value), s_EA_Radius))
             {
                 OnRadiusChanged();
             }
@@ -571,7 +584,7 @@ public class Joystick : EventDispatcherObject
         }
         private set
         {
-            if (SetProperty(ref _direction, value, _ea_Direction))
+            if (SetProperty(ref _direction, value, s_EA_Direction))
             {
                 OnDirectionChanged();
             }
@@ -599,7 +612,7 @@ public class Joystick : EventDispatcherObject
         }
         private set
         {
-            if (SetProperty(ref _isPushed, value, _ea_IsPushed))
+            if (SetProperty(ref _isPushed, value, s_EA_IsPushed))
             {
                 OnIsPushedChanged();
             }
@@ -614,7 +627,7 @@ public class Joystick : EventDispatcherObject
     public TimeSpan FrameTime
     {
         get => _frameTime;
-        private set => SetProperty(ref _frameTime, value, _ea_FrameTime);
+        private set => SetProperty(ref _frameTime, value, s_EA_FrameTime);
     }
 
 

@@ -28,9 +28,9 @@ public class Trigger : EventDispatcherObject
     #region Fields
 
     // Static PropertyChangedEventArgs fields, use for property changes.
-    private static readonly PropertyChangedEventArgs _ea_RawValue = new(nameof(RawValue));
-    private static readonly PropertyChangedEventArgs _ea_Value = new(nameof(Value));
-    private static readonly PropertyChangedEventArgs _ea_FrameTime = new(nameof(FrameTime));
+    private static readonly PropertyChangedEventArgs s_EA_RawValue = new(nameof(RawValue));
+    private static readonly PropertyChangedEventArgs s_EA_Value = new(nameof(Value));
+    private static readonly PropertyChangedEventArgs s_EA_FrameTime = new(nameof(FrameTime));
 
     // Property back storage fields.
     private float _rawValue = 0f;  // Store for the value of RawValue property.
@@ -70,6 +70,7 @@ public class Trigger : EventDispatcherObject
     /// that can be invoked to update the state of the 
     /// <see cref="Trigger"/> instance.</param>
     public Trigger(out TriggerUpdateCallback updateCallback)
+        : this()
     {
         updateCallback = new TriggerUpdateCallback(UpdateState);
     }
@@ -143,7 +144,7 @@ public class Trigger : EventDispatcherObject
     {
         get => _rawValue;
         private set => Invalidate(SetProperty(
-            ref _rawValue, InputMath.Clamp01(value), _ea_RawValue));
+            ref _rawValue, InputMath.Clamp01(value), s_EA_RawValue));
     }
 
 
@@ -165,7 +166,7 @@ public class Trigger : EventDispatcherObject
         }
         private set
         {
-            if (SetProperty(ref _value, InputMath.Clamp01(value), _ea_Value))
+            if (SetProperty(ref _value, InputMath.Clamp01(value), s_EA_Value))
             {
                 OnValueChanged();
             }
@@ -180,7 +181,7 @@ public class Trigger : EventDispatcherObject
     public TimeSpan FrameTime
     {
         get => _frameTime;
-        private set => SetProperty(ref _frameTime, value, _ea_FrameTime);
+        private set => SetProperty(ref _frameTime, value, s_EA_FrameTime);
     }
 
 
