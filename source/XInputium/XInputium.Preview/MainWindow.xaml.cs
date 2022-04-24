@@ -1,17 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Input;
 using System.Windows.Media;
-using XInputium;
 using XInputium.Preview.Data.Poco;
 using XInputium.ModifierFunctions;
 using XInputium.XInput;
@@ -25,19 +17,19 @@ public partial class MainWindow : Window
 {
 
 
-    #region Fields and constants
+    #region Fields
 
-    public static readonly List<ModifierFunctionPoco> ModifierFunctions;
+    private static readonly ModifierFunctionPoco[] s_ModifierFunctions;
 
-    #endregion Fields and constants
+    #endregion Fields
 
 
     #region Constructors
 
     static MainWindow()
     {
-        // Create the modifier functions we will use in the UI.
-        ModifierFunctions = new()
+        // Create the modifier functions that we will use in the UI.
+        s_ModifierFunctions = new ModifierFunctionPoco[]
         {
             new ModifierFunctionPoco("None", null),
             new("Linear", NonLinearFunctions.Linear),
@@ -72,15 +64,14 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         // Register window event handlers
-        SourceInitialized += MainWindow_SourceInitialized;
+        SourceInitialized += (_, _) => CompositionTarget.Rendering += (_, _) => OnRendering();
         Loaded += MainWindow_Loaded;
 
         // Initialize input objects.
         DeviceManager = new();
         DeviceManager.DeviceConnected += DeviceManager_DeviceConnected;
-        DeviceManager.DeviceDisconnected += DeviceManager_DeviceDisconnected;
         Gamepad = new(null);
-        Gamepad.StateChanged += Gamepad_StateChanged;
+        Gamepad.StateChanged += (s, e) => OnGamepadStateChanged();
     }
 
     #endregion Constructors
@@ -93,21 +84,24 @@ public partial class MainWindow : Window
 #pragma warning restore CA1822 // Mark members as static
 
 
+    public static IReadOnlyList<ModifierFunctionPoco> ModifierFunctions => s_ModifierFunctions;
+
+
     #region Gamepad dependency property
 
     public XGamepad Gamepad
     {
         get => (XGamepad)GetValue(GamepadProperty);
-        private set => SetValue(GamepadPropertyKey, value);
+        private set => SetValue(s_GamepadPropertyKey, value);
     }
 
-    private static readonly DependencyPropertyKey GamepadPropertyKey
+    private static readonly DependencyPropertyKey s_GamepadPropertyKey
         = DependencyProperty.RegisterReadOnly(nameof(Gamepad),
             typeof(XGamepad), typeof(MainWindow),
             new PropertyMetadata(null));
 
     public static readonly DependencyProperty GamepadProperty
-        = GamepadPropertyKey.DependencyProperty;
+        = s_GamepadPropertyKey.DependencyProperty;
 
     #endregion
 
@@ -117,16 +111,16 @@ public partial class MainWindow : Window
     public XInputDeviceManager DeviceManager
     {
         get => (XInputDeviceManager)GetValue(DeviceManagerProperty);
-        private set => SetValue(DeviceManagerPropertyKey, value);
+        private set => SetValue(s_DeviceManagerPropertyKey, value);
     }
 
-    private static readonly DependencyPropertyKey DeviceManagerPropertyKey
+    private static readonly DependencyPropertyKey s_DeviceManagerPropertyKey
         = DependencyProperty.RegisterReadOnly(nameof(DeviceManager),
             typeof(XInputDeviceManager), typeof(MainWindow),
             new PropertyMetadata(null));
 
     public static readonly DependencyProperty DeviceManagerProperty
-        = DeviceManagerPropertyKey.DependencyProperty;
+        = s_DeviceManagerPropertyKey.DependencyProperty;
 
     #endregion
 
@@ -135,11 +129,8 @@ public partial class MainWindow : Window
 
     #region Methods
 
-    #region Initialization related methods
-
-    private void InitializeLogic()
+    private void SetGamepadDefaultConfiguration()
     {
-        // Set default gamepad settings.
         Gamepad.LeftTrigger.InnerDeadZone = 0.15f;
         Gamepad.LeftTrigger.ModifierFunction = NonLinearFunctions.QuadraticEaseIn;
         Gamepad.RightTrigger.CopyConfigurationFrom(Gamepad.LeftTrigger);
@@ -148,12 +139,6 @@ public partial class MainWindow : Window
         Gamepad.LeftJoystick.SmoothingSamplePeriod = TimeSpan.FromMilliseconds(100);
         Gamepad.LeftJoystick.SmoothingFactor = 0.75f;
         Gamepad.RightJoystick.CopyConfigurationFrom(Gamepad.LeftJoystick);
-    }
-
-
-    private void InitializeUi()
-    {
-
     }
 
 
@@ -168,8 +153,6 @@ public partial class MainWindow : Window
             (sender, e) => Debug.WriteLine($"Held button {e.Button}."));
 
     }
-
-    #endregion
 
 
     protected virtual void OnRendering()
@@ -190,23 +173,10 @@ public partial class MainWindow : Window
 
     #region Event handlers
 
-    private void MainWindow_SourceInitialized(object? sender, EventArgs e)
-    {
-        CompositionTarget.Rendering += CompositionTarget_Rendering;
-    }
-
-
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        InitializeLogic();
-        InitializeUi();
+        SetGamepadDefaultConfiguration();
         InitializeDebug();
-    }
-
-
-    private void CompositionTarget_Rendering(object? sender, EventArgs e)
-    {
-        OnRendering();
     }
 
 
@@ -216,18 +186,6 @@ public partial class MainWindow : Window
         {
             Gamepad.Device = DeviceManager.ConnectedDevices.FirstOrDefault();
         }
-    }
-
-
-    private void DeviceManager_DeviceDisconnected(object? sender, XInputDeviceEventArgs e)
-    {
-
-    }
-
-
-    private void Gamepad_StateChanged(object? sender, EventArgs e)
-    {
-        OnGamepadStateChanged();
     }
 
     #endregion Event handlers
