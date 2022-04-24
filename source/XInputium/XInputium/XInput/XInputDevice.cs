@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using XInputium.XInput.Internal.Win32;
 
@@ -49,6 +47,11 @@ public class XInputDevice : InputDevice<XInputDeviceState>
 
 
     #region Fields
+
+    private static readonly XInputUserIndex[] s_UserIndexes = Enum.GetValues<XInputUserIndex>();
+
+    private static readonly PropertyChangedEventArgs s_EA_LeftMotorSpeed = new(nameof(LeftMotorSpeed));
+    private static readonly PropertyChangedEventArgs s_EA_RightMotorSpeed = new(nameof(RightMotorSpeed));
 
     private float _leftMotorSpeed = 0f;  // Store for the value of LeftMotorSpeed property.
     private float _rightMotorSpeed = 0f;  // Store for the value of RightMotorSpeed property.
@@ -251,8 +254,8 @@ public class XInputDevice : InputDevice<XInputDeviceState>
     {
         if (SetState(UserIndex, leftMotorSpeed, rightMotorSpeed))
         {
-            _leftMotorSpeed = leftMotorSpeed;
-            _rightMotorSpeed = rightMotorSpeed;
+            SetProperty(ref _leftMotorSpeed, leftMotorSpeed, s_EA_LeftMotorSpeed);
+            SetProperty(ref _rightMotorSpeed, rightMotorSpeed, s_EA_RightMotorSpeed);
             return true;
         }
         return false;
@@ -296,17 +299,16 @@ public class XInputDevice : InputDevice<XInputDeviceState>
             .XInputGetState(dwUserIndex, ref state);
         if (result == Win32ErrorCodes.ERROR_SUCCESS)
         {
-            return new XInputDeviceState()
-            {
-                IsConnected = result == Win32ErrorCodes.ERROR_SUCCESS,
-                Buttons = ConvertToXButtons(in state.Gamepad.wButtons),
-                LeftJoystick = new(((float)state.Gamepad.sThumbLX) / 32768,
+            return new XInputDeviceState(
+                isConnected: true,
+                buttons: ConvertToXButtons(in state.Gamepad.wButtons),
+                leftJoystick: new(((float)state.Gamepad.sThumbLX) / 32768,
                                    ((float)state.Gamepad.sThumbLY) / 32768),
-                RightJoystick = new(((float)state.Gamepad.sThumbRX) / 32768,
+                rightJoystick: new(((float)state.Gamepad.sThumbRX) / 32768,
                                     ((float)state.Gamepad.sThumbRY) / 32768),
-                LeftTrigger = new(((float)state.Gamepad.bLeftTrigger) / 255),
-                RightTrigger = new(((float)state.Gamepad.bRightTrigger) / 255),
-            };
+                leftTrigger: new(((float)state.Gamepad.bLeftTrigger) / 255),
+                rightTrigger: new(((float)state.Gamepad.bRightTrigger) / 255)
+            );
         }
         else if (result == Win32ErrorCodes.ERROR_DEVICE_NOT_CONNECTED)
         {
@@ -452,11 +454,11 @@ public class XInputDevice : InputDevice<XInputDeviceState>
     /// <seealso cref="XInputUserIndex"/>
     public static IEnumerable<XInputUserIndex> GetConnectedDeviceIndexes()
     {
-        foreach (var value in Enum.GetValues<XInputUserIndex>())
+        for (int i = 0; i < s_UserIndexes.Length; i++)
         {
-            if (IsDeviceConnected(value))
+            if (IsDeviceConnected(s_UserIndexes[i]))
             {
-                yield return value;
+                yield return s_UserIndexes[i];
             }
         }
     }
