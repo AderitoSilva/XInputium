@@ -1,11 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0-windows</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <Description>The elemental XInput based input system for .NET.</Description>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net6.0-windows</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<VersionPrefix>1.0.1</VersionPrefix>
+		<Description>The elemental XInput library for .NET.</Description>
+		<Authors>Ader da Silva</Authors>
+		<Company>Ader da Silva</Company>
+		<Copyright>Copyright © 2022 Ader da Silva - MIT License</Copyright>
+		<RepositoryUrl>https://github.com/AderitoSilva/XInputium</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/AderitoSilva/XInputium</PackageProjectUrl>
+		<PackageTags>xinput;xbox;gamepad;gamedev;controller;device;</PackageTags>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	</PropertyGroup>
 
 </Project>

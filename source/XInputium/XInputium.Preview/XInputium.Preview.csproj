@@ -1,26 +1,31 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <UseWPF>true</UseWPF>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net6.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<UseWPF>true</UseWPF>
+		<VersionPrefix>1.0.1</VersionPrefix>
+		<Authors>Ader da Silva</Authors>
+		<Product>XInputium Preview Application</Product>
+		<Description>XInputium feature preview application, that demonstrates the use of the XInputium library.</Description>
+		<Copyright>Copyright © 2022 Ader da Silva - MIT license</Copyright>
+		<PackageProjectUrl>https://github.com/AderitoSilva/XInputium</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/AderitoSilva/XInputium</RepositoryUrl>
+		<PackageTags>xinput;xbox;gamepad;controller;device;gamedev;application;app;</PackageTags>
+		<ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="Assets\Images\XboxController.png" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Remove="Assets\Images\XboxController.png" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Resource Include="Assets\Images\XboxController.png" />
-  </ItemGroup>
+	<ItemGroup>
+		<Resource Include="Assets\Images\XboxController.png" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\XInputium\XInputium.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Assets\Fonts\" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\XInputium\XInputium.csproj" />
+	</ItemGroup>
 
 </Project>
