@@ -647,6 +647,98 @@ public class XGamepad
         return inputEvent;
     }
 
+
+    /// <summary>
+    /// Registers and returns a <see cref="RepeatDigitalButtonInputEvent{T}"/> 
+    /// that is triggered repeatedly while the specified button is held, and 
+    /// uses the specified acceleration parameters for acceleration or 
+    /// deceleration of repeat delay times.
+    /// </summary>
+    /// <param name="button"><see cref="XButtons"/> constant that 
+    /// specifies the XInput button to listen for.</param>
+    /// <param name="initialDelay">Amount of time the button must be 
+    /// held for the repeating to start.</param>
+    /// <param name="repeatDelay">Base amount of time to wait between each 
+    /// repeat.</param>
+    /// <param name="accelerationRatio">A number greater than 0, that specifies 
+    /// the acceleration ratio of the <paramref name="repeatDelay"/> time that 
+    /// will be applied on each triggering repeat. A value less than 1 causes 
+    /// the repeats to be slower, more than 1 causes the repeats to be faster, 
+    /// and 1 uses no acceleration or deceleration.</param>
+    /// <param name="minRepeatDelay">When <paramref name="accelerationRatio"/> 
+    /// is greater than 1, causing the repeat delay time to be shorter on each 
+    /// triggering repeat, this specifies the minimum delay time allowed between 
+    /// each repeat.</param>
+    /// <param name="maxRepeatDelay">When <paramref name="accelerationRatio"/> 
+    /// is lower than 1, causing the repeat delay time to be longer on each 
+    /// triggering repeat, this specifies the maximum delay time allowed between 
+    /// each repeat.</param>
+    /// <param name="callback">Callback that will be called when 
+    /// the event is triggered.</param>
+    /// <returns>The new <see cref="RepeatDigitalButtonInputEvent{T}"/> that 
+    /// was registered.</returns>
+    /// <exception cref="ArgumentException"><paramref name="button"/> 
+    /// is not a defined constant in an <see cref="XButtons"/> 
+    /// enumeration.</exception>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="callback"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="button"/> 
+    /// is <see cref="XButtons.None"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="accelerationRatio"/> 
+    /// is <see cref="float.NaN"/>.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// <paramref name="accelerationRatio"/> is equal to or lower than 0.</exception>
+    public RepeatDigitalButtonInputEvent<XInputButton> RegisterButtonRepeatEvent(
+        XButtons button, TimeSpan initialDelay, TimeSpan repeatDelay,
+        float accelerationRatio, TimeSpan minRepeatDelay, TimeSpan maxRepeatDelay,
+        DigitalButtonInputEventHandler<XInputButton> callback)
+    {
+        if (button == XButtons.None || !Enum.IsDefined(button))
+            throw new ArgumentException(
+                $"'{button}' is not a valid value for '{nameof(button)}' " +
+                $"parameter. A specific button constant is required.");
+        if (callback is null)
+            throw new ArgumentNullException(nameof(callback));
+
+        RepeatDigitalButtonInputEvent<XInputButton> inputEvent = new(Buttons[button],
+            initialDelay, repeatDelay,
+            accelerationRatio, minRepeatDelay, maxRepeatDelay);
+        inputEvent.AddHandler((sender, e) => callback.Invoke(sender, (DigitalButtonInputEventArgs<XInputButton>)e));
+        RegisterInputEvent(inputEvent);
+        return inputEvent;
+    }
+
+
+    /// <summary>
+    /// Registers and returns a <see cref="RepeatDigitalButtonInputEvent{T}"/> 
+    /// that is triggered repeatedly while the specified button is held.
+    /// </summary>
+    /// <param name="button"><see cref="XButtons"/> constant that 
+    /// specifies the XInput button to listen for.</param>
+    /// <param name="initialDelay">Amount of time the button must be 
+    /// held for the repeating to start.</param>
+    /// <param name="repeatDelay">Amount of time to wait between each 
+    /// repeat.</param>
+    /// <param name="callback">Callback that will be called when 
+    /// the event is triggered.</param>
+    /// <returns>The new <see cref="RepeatDigitalButtonInputEvent{T}"/> that 
+    /// was registered.</returns>
+    /// <exception cref="ArgumentException"><paramref name="button"/> 
+    /// is not a defined constant in an <see cref="XButtons"/> 
+    /// enumeration.</exception>
+    /// <exception cref="ArgumentException"><paramref name="button"/> 
+    /// is <see cref="XButtons.None"/>.</exception>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="callback"/> is <see langword="null"/>.</exception>
+    public RepeatDigitalButtonInputEvent<XInputButton> RegisterButtonRepeatEvent(
+        XButtons button, TimeSpan initialDelay, TimeSpan repeatDelay,
+        DigitalButtonInputEventHandler<XInputButton> callback)
+    {
+        return RegisterButtonRepeatEvent(button, initialDelay, repeatDelay,
+            1f, TimeSpan.Zero, TimeSpan.MaxValue,
+            callback);
+    }
+
     #endregion
 
     #endregion Methods

@@ -145,12 +145,20 @@ public partial class MainWindow : Window
     [Conditional("DEBUG")]
     private void InitializeDebug()
     {
+        // Code in this method is for simple testing purposes during debugging.
+
         Gamepad.RegisterButtonPressedEvent(XButtons.B,
             (sender, e) => Debug.WriteLine($"Pressed button {e.Button}."));
         Gamepad.RegisterButtonReleasedEvent(XButtons.B,
             (sender, e) => Debug.WriteLine($"Released button {e.Button}."));
         Gamepad.RegisterButtonHoldEvent(XButtons.Y, TimeSpan.FromMilliseconds(2000),
-            (sender, e) => Debug.WriteLine($"Held button {e.Button}."));
+            (sender, e) => Debug.WriteLine($"Held button {e.Button} for " +
+            $"{((DigitalButtonInputEvent<XInputButton>)e.Event).HoldDuration.TotalMilliseconds} milliseconds."));
+        Gamepad.RegisterButtonRepeatEvent(XButtons.DPadUp,
+            TimeSpan.FromMilliseconds(500), TimeSpan.FromMilliseconds(200),
+            1.05f, TimeSpan.FromMilliseconds(80), TimeSpan.MaxValue,
+            (sender, e) => Debug.WriteLine($"[{Environment.TickCount64}] {e.Button} keystroke " +
+                $"({((RepeatDigitalButtonInputEvent<XInputButton>)e.Event).RepeatCount} repeats)."));
 
     }
 
