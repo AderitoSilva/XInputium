@@ -46,6 +46,8 @@ These are some of the key features of XInputium:
 
 The provided XInputium demo application — XInputium Preview — lets you see XInputium in action and allows you to test-drive some of its features. It is a WPF application, made mostly in XAML, that shows how you would use XInputium in your own apps or games. This application can also be useful to diagnose your XInput compatible device.
 
+![XInputium Preview — XInputium feature preview application](/assets/images/XInputiumPreview.png "XInputium Preview — XInputium feature preview application")
+
 ## System requirements
 XInputium is built on **.NET 6.0** and can run on **Windows 7 or newer**.
 XInputium uses **XInput 9.1.0** API, which is included  on Windows since Windows Vista.
