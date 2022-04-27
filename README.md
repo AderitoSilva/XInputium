@@ -18,13 +18,14 @@ These are some of the key features of XInputium:
 ## How to use
 ### The `XInputDeviceState` way — just the essential features, the most lightweight
 `XInputDeviceState` simply represents the state of a controller device.
-
+```c#
     // Call this on every app/game frame.
     XInputDeviceState state = XInputDevice.GetState(XInputUserIndex.One);
+```
 
 ### The `XInputDevice` way — more features than the above, but almost as lightweight
 `XInputDevice` represents a controller device, and introduces basic events and contained device state management.
-
+```c#
     XInputDevice device = XInputDevice.GetFirstConnectedDevice();
 
     // Call this on every app/game frame.
@@ -32,15 +33,17 @@ These are some of the key features of XInputium:
     {
         Debug.WriteLine("The state has changed!");
     }
+```
 
 ### The `XGamepad` way — the most feature rich and the easiest to work with
 `XGamepad` represents a logical controller device, and encapsulates an `XInputDevice` class that can be changed at any time. `XGamepad` is a set-and-forget class.
-
+```c#
     XGamepad gamepad = new();  // This constructor uses the first connected device it finds.
     gamepad.ButtonPressed += (s, e) => Debug.WriteLine($"Button {e.Button} was pressed.");
     
     // Call this on every app/game frame. This will update the device state and trigger any events.
     gamepad.Device?.Update();
+```
 
 ## Demo application
 
