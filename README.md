@@ -10,14 +10,21 @@
 - **Compose layers of joysticks/triggers** for specific parts of your application. For instance, the same joystick might have different simultaneous configurations depending on the current game/application mode the user is at. 
 - **XAML bindable** — bind your XAML controls to any property (ex. joystick radius), and it just works.
 
+## Install
+You can install XInputium on your project using its [NuGet package](https://www.nuget.org/packages/XInputium/ "Go to NuGet.org XInputium page.").
+
+```
+Install-Package XInputium -Version 1.1.0
+```
+
 ## Getting started
 The following example code shows how you can consume XInputium:
 ```c#
-    XGamepad gamepad = new();
-    gamepad.ButtonPressed += (s, e) => Debug.WriteLine($"Button {e.Button} was pressed.");
-    
-    // Call this on every app/game frame.
-    gamepad.Update();
+XGamepad gamepad = new();
+gamepad.ButtonPressed += (s, e) => Debug.WriteLine($"Button {e.Button} was pressed.");
+
+// Call this on every app/game frame.
+gamepad.Update();
 ```
 `XGamepad` represents a logical controller device, and is the main class you would use to consume most of XInputium features. The only thing you need to do is to update the device state on every app/game frame, as shown in the previous example. Once you call `gamepad.Update()`, any consequent events will trigger.
 
