@@ -17,15 +17,15 @@ The following example code shows how you can consume XInputium:
     gamepad.ButtonPressed += (s, e) => Debug.WriteLine($"Button {e.Button} was pressed.");
     
     // Call this on every app/game frame.
-    gamepad.Device?.Update();
+    gamepad.Update();
 ```
-`XGamepad` represents a logical controller device, and is the main class you would use to consume most of XInputium features. The only thing you need to do is to update the device state on every app/game frame, as shown in the previous example. Once you call `gamepad.Device?.Update()`, any consequent events will trigger.
+`XGamepad` represents a logical controller device, and is the main class you would use to consume most of XInputium features. The only thing you need to do is to update the device state on every app/game frame, as shown in the previous example. Once you call `gamepad.Update()`, any consequent events will trigger.
 
 XInputium is fully documented, and essential information in the remarks sections is included where necessary. The library is designed to be as easy to use as possible, while still providing powerful features. A Wiki page and Reference Documentation are planned for the near future, so keep an eye out.
 
 ## Demo application — XInputium Preview
 
-The provided XInputium demo application — XInputium Preview — lets you see XInputium in action and allows you to test-drive some of its features. It is a WPF application, made mostly in XAML, that shows how you would use XInputium in your own apps or games. XInputium Preview can also be useful to diagnose your XInput compatible device.
+The provided XInputium demo application — XInputium Preview — lets you see XInputium in action and allows you to test-drive some of its features. It is a WPF application, made mostly in XAML, that shows how you would use XInputium in your own applications or games. XInputium Preview can also be useful to diagnose your XInput compatible device.
 
 ![XInputium Preview — XInputium feature preview application](/assets/images/XInputiumPreview.png "XInputium Preview — XInputium feature preview application")
 
