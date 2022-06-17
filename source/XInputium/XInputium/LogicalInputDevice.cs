@@ -501,7 +501,7 @@ public abstract class LogicalInputDevice<TDevice, TState>
     /// <seealso cref="Device"/>
     /// <seealso cref="InputDevice{TState}.Update()"/>
     [MemberNotNullWhen(true, nameof(Device))]
-    private bool Update()
+    private bool UpdateInternal()
     {
         // Update frame time.
         TimeSpan frameTime = _loopWatch.GetTime();
@@ -541,6 +541,42 @@ public abstract class LogicalInputDevice<TDevice, TState>
         return hasStateChanged;
     }
 
+
+    /// <summary>
+    /// Updates the state of the 
+    /// <see cref="LogicalInputDevice{TDevice, TState}"/> instance 
+    /// with data from the underlying <typeparamref name="TDevice"/>, 
+    /// and dispatches all enqueued events.
+    /// </summary>
+    /// <returns><see langword="true"/> if the device state was 
+    /// changed since the last time the device was updated, and 
+    /// <see cref="IsEnabled"/> is <see langword="true"/>; 
+    /// otherwise, <see langword="false"/>.</returns>
+    /// <remarks>
+    /// This method updates the 
+    /// <see cref="LogicalInputDevice{TDevice, TState}"/> instance 
+    /// with current state data from the underlying 
+    /// <typeparamref name="TDevice"/> (the device set in 
+    /// <see cref="Device"/> property), forwards any state changes 
+    /// to the device, and dispatches all enqueued events.
+    /// <br/><br/>
+    /// As an alternative to calling this method, you may opt to 
+    /// call the <see cref="InputDevice{TState}.Update()"/> method
+    /// directly.
+    /// </remarks>
+    /// <seealso cref="Device"/>
+    /// <seealso cref="InputDevice{TState}.Update()"/>
+    [MemberNotNullWhen(true, nameof(Device))]
+    public bool Update()
+    {
+        if (Device is not null)
+        {
+            Device.Update();
+            return HasStateChanged;
+        }
+        return false;
+    }
+
     #endregion Methods
 
 
@@ -548,7 +584,7 @@ public abstract class LogicalInputDevice<TDevice, TState>
 
     private void Device_Updated(object? sender, EventArgs e)
     {
-        Update();
+        UpdateInternal();
     }
 
 

@@ -595,6 +595,55 @@
                         </TextBlock>
                     </CheckBox.ToolTip>
                 </CheckBox>
+                <CheckBox Content="Enable Vibration" Margin="0,10,0,0"
+                    IsChecked="{Binding IsVibrationEnabled, Mode=TwoWay}">
+                    <CheckBox.ToolTip>
+                        <TextBlock MaxWidth="400" TextWrapping="Wrap">
+                            <Bold>Enable or disable the gamepad vibration</Bold>
+                            <LineBreak/>
+                            Uncheck this to disable passing motor speed changes to the 
+                            device and stop any currently running motor, disabling vibration 
+                            on the gamepad. This feature can be useful in scenarios where 
+                            you need to offer users the option to disable gamepad vibration 
+                            but don't want to handle this yourself in your vibration related 
+                            code.
+                            <LineBreak/><LineBreak/>
+                            This changes the value of <Bold>XGamepad.IsVibrationEnabled</Bold>
+                            property.
+                        </TextBlock>
+                    </CheckBox.ToolTip>
+                </CheckBox>
+                <Grid Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" MinWidth="50"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.ColumnSpan="2" Grid.Row="0" Margin="0,0,0,2" TextTrimming="CharacterEllipsis">
+                        Vibration Factor
+                    </TextBlock>
+                    <TextBlock Grid.Row="1" Text="{Binding VibrationFactor, StringFormat='P0'}"
+                        FontSize="12"/>
+                    <Slider Grid.Column="1" Grid.Row="1" Margin="10,0,0,0" Minimum="0" Maximum="2" SmallChange="0.01"
+                        Value="{Binding VibrationFactor, Mode=TwoWay}">
+                        <Slider.ToolTip>
+                            <TextBlock MaxWidth="400" TextWrapping="Wrap">
+                            <Bold>Set the percentage of vibration that is effectively applied</Bold>
+                            <LineBreak/>
+                            Change this value to control the vibration intensity globally on the 
+                            gamepad. This feature is useful in scenarios where you need to change 
+                            how strong the vibration is on your application but you don't want to
+                            handle this directly in your code.
+                            <LineBreak/><LineBreak/>
+                            This changes the value of <Bold>XGamepad.VibrationFactor</Bold>
+                            property.
+                            </TextBlock>
+                        </Slider.ToolTip>
+                    </Slider>
+                </Grid>
             </StackPanel>
         </DataTemplate>
 

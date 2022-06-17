@@ -45,6 +45,15 @@ public partial class MainWindow : Window
             new("Quintic EaseIn", NonLinearFunctions.QuinticEaseIn),
             new("Quintic EaseOut", NonLinearFunctions.QuinticEaseOut),
             new("Quintic EaseInOut", NonLinearFunctions.QuinticEaseInOut),
+            new("Sine EaseIn", NonLinearFunctions.SineEaseIn),
+            new("Sine EaseOut", NonLinearFunctions.SineEaseOut),
+            new("Sine EaseInOut", NonLinearFunctions.SineEaseInOut),
+            new("Circular EaseIn", NonLinearFunctions.CircularEaseIn),
+            new("Circular EaseOut", NonLinearFunctions.CircularEaseOut),
+            new("Circular EaseInOut", NonLinearFunctions.CircularEaseInOut),
+            new("Exponential EaseIn", NonLinearFunctions.ExponentialEaseIn),
+            new("Exponential EaseOut", NonLinearFunctions.ExponentialEaseOut),
+            new("Exponential EaseInOut", NonLinearFunctions.ExponentialEaseInOut),
             new("Bézier", NonLinearFunctions.Bezier),
             new("Reverse", CommonModifierFunctions.Reverse),
             new("Negate", CommonModifierFunctions.Negate),
@@ -55,6 +64,7 @@ public partial class MainWindow : Window
             new("Quantize 1/2", CommonModifierFunctions.Quantize(0.5f)),
             new("Quantize 1/4", CommonModifierFunctions.Quantize(0.25f)),
             new("Quantize 1/8", CommonModifierFunctions.Quantize(0.125f)),
+            new("Zero", CommonModifierFunctions.Zero),
         };
     }
 
@@ -71,18 +81,13 @@ public partial class MainWindow : Window
         DeviceManager = new();
         DeviceManager.DeviceConnected += DeviceManager_DeviceConnected;
         Gamepad = new(null);
-        Gamepad.StateChanged += (s, e) => OnGamepadStateChanged();
+        Gamepad.StateChanged += (_, _) => OnGamepadStateChanged();
     }
 
     #endregion Constructors
 
 
     #region Properties
-
-#pragma warning disable CA1822 // Mark members as static
-    public App App => (App)Application.Current;
-#pragma warning restore CA1822 // Mark members as static
-
 
     public static IReadOnlyList<ModifierFunctionPoco> ModifierFunctions => s_ModifierFunctions;
 
@@ -131,12 +136,15 @@ public partial class MainWindow : Window
 
     private void SetGamepadDefaultConfiguration()
     {
+        // Setup triggers.
         Gamepad.LeftTrigger.InnerDeadZone = 0.15f;
         Gamepad.LeftTrigger.ModifierFunction = NonLinearFunctions.QuadraticEaseIn;
         Gamepad.RightTrigger.CopyConfigurationFrom(Gamepad.LeftTrigger);
+
+        // Setup joysticks.
         Gamepad.LeftJoystick.InnerDeadZone = 0.2f;
         Gamepad.LeftJoystick.RadiusModifierFunction = NonLinearFunctions.QuadraticEaseIn;
-        Gamepad.LeftJoystick.SmoothingSamplePeriod = TimeSpan.FromMilliseconds(100);
+        Gamepad.LeftJoystick.SmoothingSamplePeriod = TimeSpan.FromMilliseconds(100d);
         Gamepad.LeftJoystick.SmoothingFactor = 0.75f;
         Gamepad.RightJoystick.CopyConfigurationFrom(Gamepad.LeftJoystick);
     }
@@ -145,7 +153,7 @@ public partial class MainWindow : Window
     [Conditional("DEBUG")]
     private void InitializeDebug()
     {
-        // Code in this method is for simple testing purposes during debugging.
+        // Code in this method is for simple testing purposes during debug.
 
         Gamepad.RegisterButtonPressedEvent(XButtons.B,
             (sender, e) => Debug.WriteLine($"Pressed button {e.Button}."));

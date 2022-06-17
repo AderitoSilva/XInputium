@@ -15,6 +15,13 @@ public static class CommonModifierFunctions
     #region Properties
 
     /// <summary>
+    /// Gets a <see cref="ModifierFunction"/> that always returns 0.
+    /// </summary>
+    public static ModifierFunction Zero { get; }
+        = value => 0f;
+
+
+    /// <summary>
     /// Gets a <see cref="ModifierFunction"/> that reverses a value, 
     /// where a 0 value will return 1 and a 1 value will return 0.
     /// </summary>

@@ -132,6 +132,136 @@ public static class NonLinearFunctions
 
     /// <summary>
     /// Gets a <see cref="ModifierFunction"/> that returns the 
+    /// eased-in sine of the provided value.
+    /// </summary>
+    /// <seealso cref="SineEaseOut"/>
+    /// <seealso cref="SineEaseInOut"/>
+    public static ModifierFunction SineEaseIn { get; }
+        = value => MathF.CopySign(MathF.Abs(
+            MathF.Sin((value - 1f) * MathF.PI / 2f) + 1f
+            ), value);
+
+
+    /// <summary>
+    /// Gets a <see cref="ModifierFunction"/> that returns the 
+    /// eased-out sine of the provided value.
+    /// </summary>
+    /// <seealso cref="SineEaseIn"/>
+    /// <seealso cref="SineEaseInOut"/>
+    public static ModifierFunction SineEaseOut { get; }
+        = value => MathF.CopySign(MathF.Abs(
+            MathF.Sin(value * MathF.PI / 2f)
+            ), value);
+
+
+    /// <summary>
+    /// Gets a <see cref="ModifierFunction"/> that returns the 
+    /// eased-in-out sine of the provided value.
+    /// </summary>
+    /// <seealso cref="SineEaseIn"/>
+    /// <seealso cref="SineEaseOut"/>
+    public static ModifierFunction SineEaseInOut { get; }
+        = value => MathF.CopySign(MathF.Abs(
+            0.5f * (1f - MathF.Cos(value * MathF.PI))
+            ), value);
+
+
+    /// <summary>
+    /// Gets a <see cref="ModifierFunction"/> that returns the 
+    /// eased-in circular result of the provided value.
+    /// </summary>
+    /// <seealso cref="CircularEaseOut"/>
+    /// <seealso cref="CircularEaseInOut"/>
+    public static ModifierFunction CircularEaseIn { get; }
+        = value => MathF.CopySign(MathF.Abs(
+            1f - MathF.Sqrt(1f - (MathF.Abs(value) * MathF.Abs(value)))
+            ), value);
+
+
+    /// <summary>
+    /// Gets a <see cref="ModifierFunction"/> that returns the 
+    /// eased-out circular result of the provided value.
+    /// </summary>
+    /// <seealso cref="CircularEaseIn"/>
+    /// <seealso cref="CircularEaseInOut"/>
+    public static ModifierFunction CircularEaseOut { get; }
+        = value => MathF.CopySign(MathF.Abs(
+            MathF.Sqrt((2f - MathF.Abs(value)) * MathF.Abs(value))
+            ), value);
+
+
+    /// <summary>
+    /// Gets a <see cref="ModifierFunction"/> that returns the 
+    /// eased-in-out circular result of the provided value.
+    /// </summary>
+    /// <seealso cref="CircularEaseIn"/>
+    /// <seealso cref="CircularEaseOut"/>
+    public static ModifierFunction CircularEaseInOut { get; }
+        = value =>
+        {
+            value = InputMath.Clamp11(value);
+            return MathF.Abs(value) < 0.5f
+                ? MathF.CopySign(MathF.Abs(
+                    0.5f * (1f - MathF.Sqrt(1f - 4f * (MathF.Abs(value) * MathF.Abs(value))))
+                    ), value)
+                : MathF.CopySign(MathF.Abs(
+                    0.5f * (MathF.Sqrt(-((2 * MathF.Abs(value)) - 3f) * ((2f * MathF.Abs(value)) - 1f)) + 1f)
+                    ), value);
+        };
+
+
+    /// <summary>
+    /// Gets a <see cref="ModifierFunction"/> that returns the 
+    /// eased-in exponential result of the provided value.
+    /// </summary>
+    /// <seealso cref="ExponentialEaseOut"/>
+    /// <seealso cref="ExponentialEaseInOut"/>
+    public static ModifierFunction ExponentialEaseIn { get; }
+        = value => MathF.CopySign(MathF.Abs(
+            value == 0f ? 0f : MathF.Pow(2f, 10f * (MathF.Abs(value) - 1f))
+            ), value);
+
+
+    /// <summary>
+    /// Gets a <see cref="ModifierFunction"/> that returns the 
+    /// eased-out exponential result of the provided value.
+    /// </summary>
+    /// <seealso cref="ExponentialEaseIn"/>
+    /// <seealso cref="ExponentialEaseInOut"/>
+    public static ModifierFunction ExponentialEaseOut { get; }
+        = value => MathF.CopySign(MathF.Abs(
+            InputMath.Clamp01(MathF.Abs(value)) == 1f ? 1f
+            : 1f - MathF.Pow(2f, -10f * MathF.Abs(value))
+            ), value);
+
+
+    /// <summary>
+    /// Gets a <see cref="ModifierFunction"/> that returns the 
+    /// eased-in-out exponential result of the provided value.
+    /// </summary>
+    /// <seealso cref="ExponentialEaseIn"/>
+    /// <seealso cref="ExponentialEaseOut"/>
+    public static ModifierFunction ExponentialEaseInOut { get; }
+        = value =>
+        {
+            value = InputMath.Clamp11(value);
+            if (value == 0f)
+                return 0f;
+            if (MathF.Abs(value) == 1f)
+                return value;
+            if (MathF.Abs(value) < 0.5f)
+                return MathF.CopySign(MathF.Abs(
+                    0.5f * MathF.Pow(2f, (20f * MathF.Abs(value)) - 10f)
+                    ), value);
+            else
+                return MathF.CopySign(MathF.Abs(
+                    -0.5f * MathF.Pow(2f, (-20f * MathF.Abs(value)) + 10f) + 1f
+                    ), value);
+        };
+
+
+    /// <summary>
+    /// Gets a <see cref="ModifierFunction"/> that returns the 
     /// Bézier of the provided value.
     /// </summary>
     public static ModifierFunction Bezier { get; }

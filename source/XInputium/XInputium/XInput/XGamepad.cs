@@ -53,13 +53,25 @@ public class XGamepad
 
     #region Fields
 
+    /// <summary>
+    /// The speed of a device motor when it is fully stopped.
+    /// </summary>
+    /// <seealso cref="LeftMotorSpeed"/>
+    /// <seealso cref="RightMotorSpeed"/>
+    public static readonly float StoppedMotorSpeed = 0f;
+
+
     // Static PropertyChangedEventArgs to use for property value changes.
+    private static readonly PropertyChangedEventArgs s_EA_IsVibrationEnabled = new(nameof(IsVibrationEnabled));
     private static readonly PropertyChangedEventArgs s_EA_LeftMotorSpeed = new(nameof(LeftMotorSpeed));
     private static readonly PropertyChangedEventArgs s_EA_RightMotorSpeed = new(nameof(RightMotorSpeed));
+    private static readonly PropertyChangedEventArgs s_EA_VibrationFactor = new(nameof(VibrationFactor));
 
     // Property backing storage fields.
-    private float _leftMotorSpeed = 0f;  // Store for the value of LeftMotorSpeed property.
-    private float _rightMotorSpeed = 0f;  // Store for the value of RightMotorSpeed property.
+    private bool _isVibrationEnabled = true;  // Store for the value of IsVibrationEnabled property.
+    private float _leftMotorSpeed = StoppedMotorSpeed;  // Store for the value of LeftMotorSpeed property.
+    private float _rightMotorSpeed = StoppedMotorSpeed;  // Store for the value of RightMotorSpeed property.
+    private float _vibrationFactor = 1f;  // Store for the value of VibrationFactor property.
 
     // Callbacks used to update instances of the triggers, joysticks and buttons.
     private readonly XInputButtonSetUpdateCallback _buttonsUpdateCallback;
@@ -242,19 +254,52 @@ public class XGamepad
     #region Properties
 
     /// <summary>
+    /// Gets or sets a <see cref="bool"/> that enables or disables the vibration 
+    /// of the gamepad.
+    /// </summary>
+    /// <value><see langword="true"/> to enable vibration, or <see langword="false"/> 
+    /// to disallow any vibration and stop any currently rotating motor. 
+    /// The default is <see langword="true"/>.</value>
+    /// <remarks>
+    /// The value of this property will be effectively applied on the device 
+    /// during the next call to 
+    /// <see cref="LogicalInputDevice{TDevice, TState}.Update()"/> method.
+    /// </remarks>
+    /// <seealso cref="LeftMotorSpeed"/>
+    /// <seealso cref="RightMotorSpeed"/>
+    public bool IsVibrationEnabled
+    {
+        get => _isVibrationEnabled;
+        set
+        {
+            SetProperty(ref _isVibrationEnabled, in value, s_EA_IsVibrationEnabled);
+        }
+    }
+
+
+    /// <summary>
     /// Gets or sets the left motor rotation speed.
     /// </summary>
     /// <value>A number between the 0 and 1 inclusive range, that specifies 
     /// the motor rotation speed, where 0 means the motor is stopped and 1 
     /// means the motor is running at full speed; if you specify 
     /// <see cref="float.NaN"/>, it will also stop the motor, being recognized 
-    /// as 0. The default value is 0.</value>
+    /// as 0. The default value is <see cref="StoppedMotorSpeed"/>.</value>
     /// <remarks>
     /// The value of this property will be effectively applied on the device 
     /// during the next call to 
-    /// <see cref="LogicalInputDevice{TDevice, TState}.Update()"/> method.
+    /// <see cref="LogicalInputDevice{TDevice, TState}.Update()"/> method. 
+    /// <br/><br/>
+    /// Note that the device motor will only rotate when the value of 
+    /// <see cref="IsVibrationEnabled"/> property is <see langword="true"/>. 
+    /// While <see cref="IsVibrationEnabled"/> property is set to 
+    /// <see langword="false"/>, the device motors will remain stopped, but 
+    /// <see cref="LeftMotorSpeed"/> will still report the value you set to 
+    /// it. To get the actual device left motor speed, use 
+    /// <see cref="XInputDevice.LeftMotorSpeed"/> property.
     /// </remarks>
     /// <seealso cref="RightMotorSpeed"/>
+    /// <seealso cref="IsVibrationEnabled"/>
     public float LeftMotorSpeed
     {
         get => _leftMotorSpeed;
@@ -274,13 +319,22 @@ public class XGamepad
     /// the motor rotation speed, where 0 means the motor is stopped and 1 
     /// means the motor is running at full speed; if you specify 
     /// <see cref="float.NaN"/>, it will also stop the motor, being recognized 
-    /// as 0. The default value is 0.</value>
+    /// as 0. The default value is <see cref="StoppedMotorSpeed"/>.</value>
     /// <remarks>
     /// The value of this property will be effectively applied on the device 
     /// during the next call to 
     /// <see cref="LogicalInputDevice{TDevice, TState}.Update()"/> method.
+    /// <br/><br/>
+    /// Note that the device motor will only rotate when the value of 
+    /// <see cref="IsVibrationEnabled"/> property is <see langword="true"/>. 
+    /// While <see cref="IsVibrationEnabled"/> property is set to 
+    /// <see langword="false"/>, the device motors will remain stopped, but 
+    /// <see cref="RightMotorSpeed"/> will still report the value you set to 
+    /// it. To get the actual device left motor speed, use 
+    /// <see cref="XInputDevice.RightMotorSpeed"/> property.
     /// </remarks>
     /// <seealso cref="LeftMotorSpeed"/>
+    /// <seealso cref="IsVibrationEnabled"/>
     public float RightMotorSpeed
     {
         get => _rightMotorSpeed;
@@ -289,6 +343,36 @@ public class XGamepad
             if (float.IsNaN(value))
                 value = 0f;
             SetProperty(ref _rightMotorSpeed, in value, s_EA_RightMotorSpeed);
+        }
+    }
+
+
+    /// <summary>
+    /// Gets or sets the multiplier for the device motors speed.
+    /// </summary>
+    /// <value>A number equal to or greater than 0, by which 
+    /// <see cref="LeftMotorSpeed"/> and <see cref="RightMotorSpeed"/> 
+    /// will be multiplied. The default is 1.</value>
+    /// <exception cref="ArgumentException">The value being set to the property 
+    /// is <see cref="float.NaN"/>.</exception>
+    /// <remarks>
+    /// The value of this property will be effectively applied on the device 
+    /// during the next call to 
+    /// <see cref="LogicalInputDevice{TDevice, TState}.Update()"/> method.
+    /// </remarks>
+    /// <seealso cref="IsVibrationEnabled"/>
+    /// <seealso cref="LeftMotorSpeed"/>
+    /// <seealso cref="RightMotorSpeed"/>
+    public float VibrationFactor
+    {
+        get => _vibrationFactor;
+        set
+        {
+            if (float.IsNaN(value))
+                throw new ArgumentException(
+                    $"'{nameof(value)}' cannot be '{float.NaN}'.",
+                    nameof(value));
+            SetProperty(ref _vibrationFactor, MathF.Max(value, 0f), s_EA_VibrationFactor);
         }
     }
 
@@ -457,8 +541,8 @@ public class XGamepad
         _leftTriggerUpdateCallback.Invoke(0f, TimeSpan.Zero);
         _rightTriggerUpdateCallback.Invoke(0f, TimeSpan.Zero);
 
-        LeftMotorSpeed = 0f;
-        RightMotorSpeed = 0f;
+        LeftMotorSpeed = StoppedMotorSpeed;
+        RightMotorSpeed = StoppedMotorSpeed;
     }
 
 
@@ -505,13 +589,31 @@ public class XGamepad
         if (Device is null)
             throw new InvalidOperationException("No device is set.");
 
-        // Set the device motors speed, if necessary.
-        if (LeftMotorSpeed != Device.LeftMotorSpeed
-            || RightMotorSpeed != Device.RightMotorSpeed)
+        // Set the device motors speed, as necessary.
+        float leftMotorSpeed = LeftMotorSpeed * VibrationFactor;
+        float rightMotorSpeed = RightMotorSpeed * VibrationFactor;
+        leftMotorSpeed = InputMath.Clamp01(leftMotorSpeed);
+        rightMotorSpeed = InputMath.Clamp01(rightMotorSpeed);
+        if (leftMotorSpeed != Device.LeftMotorSpeed
+            || rightMotorSpeed != Device.RightMotorSpeed
+            || (!IsVibrationEnabled && (Device.LeftMotorSpeed > 0f || Device.RightMotorSpeed > 0f)))
         {
-            Device.SetMotorsSpeed(LeftMotorSpeed, RightMotorSpeed);
-            LeftMotorSpeed = Device.LeftMotorSpeed;
-            RightMotorSpeed = Device.RightMotorSpeed;
+            if (!IsVibrationEnabled)
+            {
+                // The vibration is disabled. Stop the motors.
+                leftMotorSpeed = StoppedMotorSpeed;
+                rightMotorSpeed = StoppedMotorSpeed;
+            }
+            // Update the device motors speed.
+            Device.SetMotorsSpeed(leftMotorSpeed, rightMotorSpeed);
+            // Synchronize properties with the current raw values from the
+            // device, but only when the vibration is enabled, so they don't
+            // get changed to 0 when the vibration is disabled.
+            if (IsVibrationEnabled && VibrationFactor == 1f)
+            {
+                LeftMotorSpeed = Device.LeftMotorSpeed;
+                RightMotorSpeed = Device.RightMotorSpeed;
+            }
         }
     }
 

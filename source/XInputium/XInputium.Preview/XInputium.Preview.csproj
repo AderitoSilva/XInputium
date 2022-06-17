@@ -5,7 +5,7 @@
 		<TargetFramework>net6.0-windows</TargetFramework>
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
-		<VersionPrefix>1.0.1</VersionPrefix>
+		<VersionPrefix>1.1.0</VersionPrefix>
 		<Authors>Ader da Silva</Authors>
 		<Product>XInputium Preview Application</Product>
 		<Description>XInputium feature preview application, that demonstrates the use of the XInputium library.</Description>
