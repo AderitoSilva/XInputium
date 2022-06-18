@@ -3,7 +3,7 @@
 ---
 
 ![XInputium Logo](/assets/images/XInputiumLogo.png "XInputium")
-<img alt="XInputium Logo" src="/assets/images/XInputiumLogo.png" width="75%" style="margin:10px auto;"/>
+<img alt="XInputium Logo" src="/assets/images/XInputiumLogo.png" width="75%"/>
 
 ---
 
