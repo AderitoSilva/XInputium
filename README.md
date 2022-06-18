@@ -1,4 +1,4 @@
-![Nuget](https://img.shields.io/nuget/v/xinputium?style=for-the-badge)
+<a href="https://www.nuget.org/packages/XInputium/" target="_blank" title="NuGet"><img src="https://img.shields.io/nuget/v/xinputium?style=for-the-badge"/></a>
 ---
 
 ![XInputium Logo](/assets/images/XInputiumLogo.png "XInputium")
