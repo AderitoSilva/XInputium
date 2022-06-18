@@ -1,4 +1,6 @@
-![XInputium](/assets/images/XInputiumLogo.png "XInputium")
+![XInputium Logo](/assets/images/XInputiumLogo.png "XInputium")
+
+---
 
 **XInputium** is a .NET library that provides you out-of-the-box XInput integration into your application. In contrast with other existing .NET XInput libraries, XInputium introduces a full-fledged input system, and is designed to allow you to focus more on your game/application logic and less on input handling code.
 
@@ -31,14 +33,15 @@ gamepad.Update();
 
 XInputium is fully documented, and essential information in the remarks sections is included where necessary. The library is designed to be as easy to use as possible, while still providing powerful features. A Wiki page and Reference Documentation are planned for the near future, so keep an eye out.
 
+## System requirements
+* XInputium is built on **.NET 6.0**.
+* XInputium uses **XInput 9.1.0** API.
+* Currently, only **Windows 7 or later** is supported.
+
+---
+
 ## Demo application — XInputium Preview
 
 The provided XInputium demo application — XInputium Preview — lets you see XInputium in action and allows you to test-drive some of its features. It is a WPF application, made mostly in XAML, that shows how you would use XInputium in your own applications or games. XInputium Preview can also be useful to diagnose your XInput compatible device.
 
 ![XInputium Preview — XInputium feature preview application](/assets/images/XInputiumPreview.png "XInputium Preview — XInputium feature preview application")
-
-## System requirements
-* XInputium is built on **.NET 6.0**.
-* XInputium uses **XInput 9.1.0** API.
-* Currently, only **Windows 7 or later** is supported. Support for additional platforms may be implemented in the future.
-
