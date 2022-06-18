@@ -1,4 +1,4 @@
-![Nuget](https://img.shields.io/nuget/dt/xinputium?label=nuget)
+![Nuget](https://img.shields.io/nuget/v/xinputium?style=for-the-badge)
 ---
 
 ![XInputium Logo](/assets/images/XInputiumLogo.png "XInputium")
