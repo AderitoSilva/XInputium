@@ -2,7 +2,6 @@
 <a href="https://github.com/AderitoSilva/XInputium/blob/main/LICENSE" title="Project license"><img src="https://img.shields.io/github/license/AderitoSilva/XInputium?style=for-the-badge" alt="License"/></a>
 ---
 
-![XInputium Logo](/assets/images/XInputiumLogo.png "XInputium")
 <img alt="XInputium Logo" src="/assets/images/XInputiumLogo.png" width="75%"/>
 
 ---
