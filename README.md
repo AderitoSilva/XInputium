@@ -1,5 +1,5 @@
 <a href="https://www.nuget.org/packages/XInputium/" target="_blank" title="Go to NuGet.org"><img src="https://img.shields.io/nuget/v/xinputium?style=for-the-badge" alt="NuGet"/></a>
-<a href="https://github.com/Microsoft/dotnet" target="_blank"><img src="https://img.shields.io/static/v1?label=.NET&message=6.0&color=9cf&style=for-the-badge" alt=".NET Version"/></a>
+<a href="https://github.com/Microsoft/dotnet" target="_blank" title=".NET version"><img src="https://img.shields.io/static/v1?label=.NET&message=6.0&color=9cf&style=for-the-badge" alt=".NET Version"/></a>
 <a href="https://github.com/AderitoSilva/XInputium/blob/main/LICENSE" title="Project license"><img src="https://img.shields.io/github/license/AderitoSilva/XInputium?style=for-the-badge" alt="License"/></a>
 ---
 
