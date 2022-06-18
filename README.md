@@ -13,6 +13,8 @@
 - **Compose layers of joysticks/triggers** for specific parts of your application. For instance, the same joystick might have different simultaneous configurations depending on the current game/application mode the user is at. 
 - **XAML bindable** — bind your XAML controls to any property (ex. joystick radius), and it just works.
 
+For a more exhaustive description about XInputium and its features, refer to the [Introduction](/wiki/Introduction) page on the Wiki.
+
 ## Installation
 You can install XInputium on your project using its [NuGet package](https://www.nuget.org/packages/XInputium/ "Go to NuGet.org XInputium page.").
 
