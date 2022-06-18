@@ -2,7 +2,7 @@
 <a href="https://github.com/AderitoSilva/XInputium/blob/main/LICENSE" title="Project license"><img src="https://img.shields.io/github/license/AderitoSilva/XInputium?style=for-the-badge" alt="License"/></a>
 ---
 
-<p align="center"><img alt="XInputium Logo" src="/assets/images/XInputiumLogo.png" width="65%"/></p>
+<p align="center"><img alt="XInputium Logo" src="/assets/images/XInputiumLogo_Dark.svg" width="65%"/></p>
 
 **XInputium** is a .NET library that provides you out-of-the-box XInput integration into your application. In contrast with other existing .NET XInput libraries, XInputium introduces a full-fledged input system, and is designed to allow you to focus more on your game/application logic and less on input handling code.
 
