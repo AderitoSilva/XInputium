@@ -1,4 +1,5 @@
-# XInputium
+![XInputium](/assets/images/XInputiumLogo.png "XInputium")
+
 **XInputium** is a .NET library that provides you out-of-the-box XInput integration into your application. In contrast with other existing .NET XInput libraries, XInputium introduces a full-fledged input system, and is designed to allow you to focus more on your game/application logic and less on input handling code.
 
 ## Key features
