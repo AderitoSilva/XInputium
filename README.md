@@ -1,5 +1,6 @@
-<a href="https://www.nuget.org/packages/XInputium/" target="_blank" title="NuGet"><img src="https://img.shields.io/nuget/v/xinputium?style=for-the-badge"/></a>
+<a href="https://www.nuget.org/packages/XInputium/" target="_blank" title="Go to NuGet.org"><img src="https://img.shields.io/nuget/v/xinputium?style=for-the-badge" alt="NuGet"/></a>
 ![GitHub](https://img.shields.io/github/license/AderitoSilva/XInputium?style=for-the-badge)
+<a href="https://github.com/AderitoSilva/XInputium/blob/main/LICENSE" title="Project license"><img src="https://img.shields.io/github/license/AderitoSilva/XInputium?style=for-the-badge" alt="License"/></a>
 ---
 
 ![XInputium Logo](/assets/images/XInputiumLogo.png "XInputium")
