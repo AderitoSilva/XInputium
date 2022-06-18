@@ -1,4 +1,5 @@
 <a href="https://www.nuget.org/packages/XInputium/" target="_blank" title="NuGet"><img src="https://img.shields.io/nuget/v/xinputium?style=for-the-badge"/></a>
+![GitHub](https://img.shields.io/github/license/AderitoSilva/XInputium?style=for-the-badge)
 ---
 
 ![XInputium Logo](/assets/images/XInputiumLogo.png "XInputium")
