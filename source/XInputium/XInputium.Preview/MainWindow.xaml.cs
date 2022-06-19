@@ -171,6 +171,7 @@ public partial class MainWindow : Window
     }
 
 
+
     protected virtual void OnRendering()
     {
         DeviceManager.Update();
