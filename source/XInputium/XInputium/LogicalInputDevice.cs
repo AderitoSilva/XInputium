@@ -68,22 +68,16 @@ public abstract class LogicalInputDevice<TDevice, TState>
     /// <summary>
     /// Initializes a new instance of a 
     /// <see cref="LogicalInputDevice{TDevice, TState}"/> class, 
-    /// that uses the specified input device and measures time 
-    /// using the specified <see cref="InputLoopWatch"/>.
+    /// that measures time using the specified 
+    /// <see cref="InputLoopWatch"/>.
     /// </summary>
-    /// <param name="device">Input device that will be abstracted 
-    /// by the <see cref="LogicalInputDevice{TDevice, TState}"/>. 
-    /// You can pass <see langword="null"/> to this parameter to 
-    /// specify no input device and set an input device later, 
-    /// using <see cref="Device"/> property.</param>
     /// <param name="watch"><see cref="InputLoopWatch"/> based 
     /// instance that will be used to measure time between input 
     /// loops iterations. If you pass <see langword="null"/> to 
     /// this parameter, the default watch will be used.</param>
-    public LogicalInputDevice(TDevice? device, InputLoopWatch? watch)
+    public LogicalInputDevice(InputLoopWatch? watch)
         : base(EventDispatchMode.Deferred)
     {
-        Device = device;
         _loopWatch = watch ?? InputLoopWatch.GetDefault();
         _loopWatch.Reset();
     }
@@ -184,26 +178,12 @@ public abstract class LogicalInputDevice<TDevice, TState>
             Reset();
 
             // Detach existing device.
-            if (_device is not null)
-            {
-                SetDeviceState();
-                _device.Updated -= Device_Updated;
-                _device.Connected -= Device_Connected;
-                _device.Disconnected -= Device_Disconnected;
-            }
-
-            // Set the new device.
-            _device = value;
+            DetachCurrentDevice();
 
             // Attach new device.
-            if (_device is not null)
+            if (value is not null)
             {
-                IsConnected = _device.IsConnected;
-                _device.Updated += Device_Updated;
-                _device.Connected += Device_Connected;
-                _device.Disconnected += Device_Disconnected;
-                UpdateLogicalState();
-                SetDeviceState();
+                AttachDevice(value);
             }
 
             // Notify event listeners.
@@ -394,6 +374,45 @@ public abstract class LogicalInputDevice<TDevice, TState>
     protected virtual void OnIsEnabledChanged()
     {
         RaiseEvent(() => IsEnabledChanged?.Invoke(this, EventArgs.Empty));
+    }
+
+
+    /// <summary>
+    /// Removes the current device from being attached to the 
+    /// current instance.
+    /// </summary>
+    private void DetachCurrentDevice()
+    {
+        if (_device is not null)
+        {
+            SetDeviceState();
+            _device.Updated -= Device_Updated;
+            _device.Connected -= Device_Connected;
+            _device.Disconnected -= Device_Disconnected;
+        }
+        _device = null;
+    }
+
+
+    /// <summary>
+    /// Attaches the specified device to the current instance.
+    /// </summary>
+    /// <param name="device">Device to attach.</param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="device"/> is <see langword="null"/>.</exception>
+    [MemberNotNull(nameof(_device))]
+    private void AttachDevice(TDevice device)
+    {
+        if (device is null)
+            throw new ArgumentNullException(nameof(device));
+
+        _device = device;
+        IsConnected = _device.IsConnected;
+        _device.Updated += Device_Updated;
+        _device.Connected += Device_Connected;
+        _device.Disconnected += Device_Disconnected;
+        UpdateLogicalState();
+        SetDeviceState();
     }
 
 

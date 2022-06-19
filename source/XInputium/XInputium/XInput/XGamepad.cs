@@ -110,7 +110,7 @@ public class XGamepad
     /// property.
     /// </remarks>
     public XGamepad(XInputDevice? device, InputLoopWatch? watch)
-        : base(device, watch)
+        : base(watch)
     {
         Buttons = new XInputButtonSet(out _buttonsUpdateCallback);
         LeftJoystick = new Joystick(out _leftJoystickUpdateCallback);
@@ -123,6 +123,8 @@ public class XGamepad
         RightJoystick.PositionChanged += RightJoystick_PositionChanged;
         LeftTrigger.ValueChanged += LeftTrigger_ValueChanged;
         RightTrigger.ValueChanged += RightTrigger_ValueChanged;
+
+        Device = device;
     }
 
 
