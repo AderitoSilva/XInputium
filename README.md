@@ -27,7 +27,7 @@ For a more exhaustive description about XInputium and its features, refer to the
 You can install XInputium on your project using its [NuGet package](https://www.nuget.org/packages/XInputium/ "Go to NuGet.org XInputium page.").
 
 ```
-Install-Package XInputium -Version 1.1.0
+Install-Package XInputium -Version 1.1.1
 ```
 
 ## Getting started
