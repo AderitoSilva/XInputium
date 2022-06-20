@@ -30,11 +30,17 @@ public class Trigger : EventDispatcherObject
     // Static PropertyChangedEventArgs fields, use for property changes.
     private static readonly PropertyChangedEventArgs s_EA_RawValue = new(nameof(RawValue));
     private static readonly PropertyChangedEventArgs s_EA_Value = new(nameof(Value));
+    private static readonly PropertyChangedEventArgs s_EA_Delta = new(nameof(Delta));
+    private static readonly PropertyChangedEventArgs s_EA_MovementSpeed = new(nameof(MovementSpeed));
+    private static readonly PropertyChangedEventArgs s_EA_IsMoving = new(nameof(IsMoving));
     private static readonly PropertyChangedEventArgs s_EA_FrameTime = new(nameof(FrameTime));
 
     // Property back storage fields.
     private float _rawValue = 0f;  // Store for the value of RawValue property.
     private float _value = 0f;  // Store for the value of Value property.
+    private float _delta = 0f;  // Store for the value of Delta property.
+    private float _movementSpeed = 0f;  // Store for the value of MovementSpeed property.
+    private bool _isMoving = false;  // Store for the value of IsMoving property.
     private TimeSpan _frameTime = TimeSpan.Zero;  // Store for the value of FrameTime property.
     private float _innerDeadZone = 0f;  // Store for the value of InnerDeadZone property.
     private float _outerDeadZone = 0f;  // Store for the value of OuterDeadZone property.
@@ -129,6 +135,15 @@ public class Trigger : EventDispatcherObject
     /// <seealso cref="Value"/>
     public event EventHandler? ValueChanged;
 
+
+    /// <summary>
+    /// It's invoked whenever the effective value of <see cref="IsMoving"/> 
+    /// property is changed.
+    /// </summary>
+    /// <seealso cref="IsMoving"/>
+    /// <seealso cref="OnIsMovingChanged()"/>
+    public event EventHandler? IsMovingChanged;
+
     #endregion Events
 
 
@@ -169,6 +184,101 @@ public class Trigger : EventDispatcherObject
             if (SetProperty(ref _value, InputMath.Clamp01(value), s_EA_Value))
             {
                 OnValueChanged();
+            }
+        }
+    }
+
+
+    /// <summary>
+    /// Gets the difference between the current and the previous value 
+    /// of the trigger.
+    /// </summary>
+    /// <returns>A number between -1 and 1, indicating the current 
+    /// effective value of the trigger, relative to the effective value
+    /// it had before the most recent update operation.</returns>
+    public float Delta
+    {
+        get
+        {
+            if (!_isValid)
+            {
+                Validate();
+            }
+            return _delta;
+        }
+        private set
+        {
+            SetProperty(ref _delta, InputMath.Clamp11(value), s_EA_Delta);
+        }
+    }
+
+
+    /// <summary>
+    /// Gets the estimated distance per second the trigger is being moved by,
+    /// by considering its current a previous effective value.
+    /// </summary>
+    /// <returns>A number equal to or greater than 0, representing the estimated 
+    /// distance the trigger is moving per second. If <see cref="FrameTime"/> 
+    /// is <see cref="TimeSpan.Zero"/> and <see cref="Delta"/> is greater than 
+    /// 0, <see cref="float.PositiveInfinity"/> is returned.</returns>
+    /// <remarks>
+    /// The number returned by this property represents the total distance the 
+    /// trigger axis would travel within a second, if it kept moving at its 
+    /// current speed. Its current speed is the trigger's delta distance (see 
+    /// <see cref="Delta"/> property), divided by the number of seconds elapsed 
+    /// between the two most recent update operations. Although the trigger 
+    /// could not keep moving indeterminately because it is constrained to its 
+    /// 0 to 1 boundaries, this property assumes as if it could.
+    /// <br/><br/>
+    /// When the time elapsed between the two most recent update operations is 
+    /// zero (<see cref="TimeSpan.Zero"/>) while the delta distance is greater 
+    /// than 0, this property returns <see cref="float.PositiveInfinity"/> to 
+    /// indicate the trigger is moving at infinite speed and represent an 
+    /// immediate movement.
+    /// </remarks>
+    /// <seealso cref="Delta"/>
+    /// <seealso cref="FrameTime"/>
+    public float MovementSpeed
+    {
+        get
+        {
+            if (!_isValid)
+            {
+                Validate();
+            }
+            return _movementSpeed;
+        }
+        private set
+        {
+            SetProperty(ref _movementSpeed, MathF.Max(value, 0f), s_EA_MovementSpeed);
+        }
+    }
+
+
+    /// <summary>
+    /// Gets a <see cref="bool"/> that indicates if the trigger is currently 
+    /// being moved, by considering the two most recent update operations.
+    /// </summary>
+    /// <returns><see langword="true"/> if the trigger is being moved; 
+    /// otherwise, <see langword="false"/>.</returns>
+    /// <seealso cref="IsMovingChanged"/>
+    /// <seealso cref="Delta"/>
+    /// <seealso cref="MovementSpeed"/>
+    public bool IsMoving
+    {
+        get
+        {
+            if (!_isValid)
+            {
+                Validate();
+            }
+            return _isMoving;
+        }
+        private set
+        {
+            if (SetProperty(ref _isMoving, value, s_EA_IsMoving))
+            {
+                OnIsMovingChanged();
             }
         }
     }
@@ -353,6 +463,17 @@ public class Trigger : EventDispatcherObject
     }
 
 
+    /// <summary>
+    /// Raises the <see cref="IsMovingChanged"/> event.
+    /// </summary>
+    /// <seealso cref="IsMovingChanged"/>
+    /// <seealso cref="IsMoving"/>
+    protected virtual void OnIsMovingChanged()
+    {
+        RaiseEvent(() => IsMovingChanged?.Invoke(this, EventArgs.Empty));
+    }
+
+
     private void UpdateState(float value, TimeSpan time)
     {
         // Validate parameters.
@@ -371,7 +492,18 @@ public class Trigger : EventDispatcherObject
         OnUpdating();
 
         // Validate the trigger.
+        float oldValue = _value;
         Validate();
+
+        // Update post-validation properties. These properties are update here,
+        // instead of on the validation method, because the validation method 
+        // will not perform a validation when the raw value doesn't change,
+        // and these properties need to be updated independently of value changes.
+        Delta = oldValue - _value;
+        IsMoving = Delta != 0f;
+        MovementSpeed = Delta == 0f ? 0f
+                    : FrameTime.TotalSeconds > 0d ? MathF.Abs(Delta) / (float)FrameTime.TotalSeconds
+                    : float.PositiveInfinity;
 
         // Perform post-validation operations.
         OnUpdated();
@@ -486,6 +618,7 @@ public class Trigger : EventDispatcherObject
             }
             else
             {
+                float delta = value - _value;
                 Value = value;
                 return true;
             }

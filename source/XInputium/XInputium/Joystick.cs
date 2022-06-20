@@ -53,7 +53,7 @@ public class Joystick : EventDispatcherObject
         {
             return new JoystickSample(x.X - y.X, x.Y - y.Y, x.Time - y.Time);
         }
-    
+
     }
 
 
@@ -120,7 +120,10 @@ public class Joystick : EventDispatcherObject
     private static readonly PropertyChangedEventArgs s_EA_Y = new(nameof(Y));
     private static readonly PropertyChangedEventArgs s_EA_Angle = new(nameof(Angle));
     private static readonly PropertyChangedEventArgs s_EA_Radius = new(nameof(Radius));
+    private static readonly PropertyChangedEventArgs s_EA_Delta = new(nameof(Delta));
     private static readonly PropertyChangedEventArgs s_EA_Direction = new(nameof(Direction));
+    private static readonly PropertyChangedEventArgs s_EA_MovementSpeed = new(nameof(MovementSpeed));
+    private static readonly PropertyChangedEventArgs s_EA_IsMoving = new(nameof(IsMoving));
     private static readonly PropertyChangedEventArgs s_EA_IsPushed = new(nameof(IsPushed));
     private static readonly PropertyChangedEventArgs s_EA_FrameTime = new(nameof(FrameTime));
 
@@ -134,7 +137,10 @@ public class Joystick : EventDispatcherObject
     private float _y = 0f;  // Store for the value of Y property.
     private float _angle = 0f;  // Store for the value of Angle property.
     private float _radius = 0f;  // Store for the value of Radius property.
+    private JoystickDelta _delta = JoystickDelta.Zero;  // Store for the value of Delta property.
     private JoystickDirection _direction = JoystickDirection.None;  // Store for the value of Direction property.
+    private float _movementSpeed = 0f;  // Store for the value of MovementSpeed property.
+    private bool _isMoving = false;  // Store for the value of IsMoving property.
     private bool _isPushed = false;  // Store for the value of IsPushed property.
     private TimeSpan _frameTime = TimeSpan.Zero;  // Store for the value of FameTime property.
     private bool _invertX = false;  // Store for the value of InvertX property.
@@ -272,6 +278,15 @@ public class Joystick : EventDispatcherObject
     /// </summary>
     /// <seealso cref="Direction"/>
     public event EventHandler? DirectionChanged;
+
+
+    /// <summary>
+    /// It's invoked whenever the value of <see cref="IsMoving"/> 
+    /// property changes.
+    /// </summary>
+    /// <seealso cref="IsMoving"/>
+    /// <seealso cref="OnIsMovingChanged()"/>
+    public event EventHandler? IsMovingChanged;
 
 
     /// <summary>
@@ -561,6 +576,38 @@ public class Joystick : EventDispatcherObject
 
 
     /// <summary>
+    /// Gets a <see cref="JoystickDelta"/> object that represents 
+    /// the difference between the current and the previous joystick 
+    /// effective position.
+    /// </summary>
+    /// <returns>A <see cref="JoystickDelta"/> object representing 
+    /// the movement delta of the joystick.</returns>
+    /// <remarks>
+    /// This property can be useful to determine if the joystick has 
+    /// moved and by how much it has moved. The returned 
+    /// <see cref="JoystickDelta"/> object contains the relative 
+    /// coordinates of the current joystick effective position, relative 
+    /// to the effective position it had before the most recent update.
+    /// </remarks>
+    /// <seealso cref="IsPushed"/>
+    public JoystickDelta Delta
+    {
+        get
+        {
+            if (!_isValid)
+            {
+                Validate();
+            }
+            return _delta;
+        }
+        private set
+        {
+            SetProperty(ref _delta, value, s_EA_Delta);
+        }
+    }
+
+
+    /// <summary>
     /// Gets a <see cref="XInputium.JoystickDirection"/> constant 
     /// that represents the current effective direction of 
     /// the joystick.
@@ -587,6 +634,80 @@ public class Joystick : EventDispatcherObject
             if (SetProperty(ref _direction, value, s_EA_Direction))
             {
                 OnDirectionChanged();
+            }
+        }
+    }
+
+
+    /// <summary>
+    /// Gets the estimated distance per second the joystick is being moved by,
+    /// by considering its current a previous effective position.
+    /// </summary>
+    /// <returns>A number equal to or greater than 0, representing the estimated 
+    /// distance the joystick is moving per second. If <see cref="FrameTime"/> 
+    /// is <see cref="TimeSpan.Zero"/> and <see cref="Delta"/> reports a 
+    /// movement distance greater than 0, <see cref="float.PositiveInfinity"/> 
+    /// is returned.</returns>
+    /// <remarks>
+    /// The number returned by this property represents the total distance the 
+    /// joystick would travel within a second, if it kept moving at its current 
+    /// speed. Its current speed is the joystick's delta distance (see 
+    /// <see cref="Delta"/> property), divided by the number of seconds elapsed 
+    /// between the two most recent update operations. Although the joystick 
+    /// could not keep moving indeterminately because it is constrained to its 
+    /// -1 to 1 boundaries, this property assumes as if it could.
+    /// <br/><br/>
+    /// When the time elapsed between the two most recent update operations is 
+    /// zero (<see cref="TimeSpan.Zero"/>) while the delta distance is greater 
+    /// than 0, this property returns <see cref="float.PositiveInfinity"/> to 
+    /// indicate the joystick is moving at infinite speed and represent an 
+    /// immediate movement.
+    /// </remarks>
+    /// <seealso cref="Delta"/>
+    /// <seealso cref="FrameTime"/>
+    /// <seealso cref="IsPushed"/>
+    public float MovementSpeed
+    {
+        get
+        {
+            if (!_isValid)
+            {
+                Validate();
+            }
+            return _movementSpeed;
+        }
+        private set
+        {
+            SetProperty(ref _movementSpeed, MathF.Max(value, 0f), s_EA_MovementSpeed);
+        }
+    }
+
+
+    /// <summary>
+    /// Gets a <see cref="bool"/> that indicates if the joystick is 
+    /// currently being moved, considering the two most recent 
+    /// update operations.
+    /// </summary>
+    /// <returns><see langword="true"/> if the joystick is being moved;
+    /// otherwise, <see langword="false"/>.</returns>
+    /// <seealso cref="Delta"/>
+    /// <seealso cref="MovementSpeed"/>
+    /// <seealso cref="IsPushed"/>
+    public bool IsMoving
+    {
+        get
+        {
+            if (!_isValid)
+            {
+                Validate();
+            }
+            return _isMoving;
+        }
+        private set
+        {
+            if (SetProperty(ref _isMoving, value, s_EA_IsMoving))
+            {
+                OnIsMovingChanged();
             }
         }
     }
@@ -676,7 +797,7 @@ public class Joystick : EventDispatcherObject
 
 
     /// <summary>
-    /// Gets or sets the inner dead-zone of the joystick.
+    /// Gets or sets the inner circular dead-zone of the joystick.
     /// </summary>
     /// <value>A value between 0 and 1, representing the portion 
     /// of the joystick's inner area that will be effectively 
@@ -701,7 +822,7 @@ public class Joystick : EventDispatcherObject
 
 
     /// <summary>
-    /// Gets or sets the outer dead-zone of the joystick.
+    /// Gets or sets the outer circular dead-zone of the joystick.
     /// </summary>
     /// <value>A value between 0 and 1, representing the portion 
     /// of the joystick's outer area that will be effectively 
@@ -887,7 +1008,7 @@ public class Joystick : EventDispatcherObject
     /// </summary>
     /// <param name="joystick"><see cref="Joystick"/> instance to 
     /// encapsulate.</param>
-    /// <returns>THe newly created <see cref="Joystick"/> instance.</returns>
+    /// <returns>The newly created <see cref="Joystick"/> instance.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="joystick"/>
     /// is <see langword="null"/>.</exception>
     /// <remarks>
@@ -914,10 +1035,10 @@ public class Joystick : EventDispatcherObject
         {
             if (sender is Joystick j)
             {
-                updateCallback.Invoke(j.RawX, j.RawY, j.FrameTime);
+                updateCallback(j.RawX, j.RawY, j.FrameTime);
             }
         };
-        updateCallback.Invoke(joystick.RawX, joystick.RawY, joystick.FrameTime);
+        updateCallback(joystick.RawX, joystick.RawY, joystick.FrameTime);
         return instance;
     }
 
@@ -925,7 +1046,7 @@ public class Joystick : EventDispatcherObject
     /// <summary>
     /// Converts the specified normalized angle to a 
     /// <see cref="JoystickDirection"/> constant that represents 
-    /// the direction of th angle.
+    /// the direction of the angle.
     /// </summary>
     /// <param name="normalAngle">A value between 0 and 1, that 
     /// specifies the normalized angle to convert.</param>
@@ -1027,6 +1148,17 @@ public class Joystick : EventDispatcherObject
 
 
     /// <summary>
+    /// Raises the <see cref="IsMovingChanged"/> event.
+    /// </summary>
+    /// <seealso cref="IsMovingChanged"/>
+    /// <seealso cref="IsMoving"/>
+    protected virtual void OnIsMovingChanged()
+    {
+        RaiseEvent(() => IsMovingChanged?.Invoke(this, EventArgs.Empty));
+    }
+
+
+    /// <summary>
     /// Raises the <see cref="IsPushedChanged"/> event.
     /// </summary>
     /// <seealso cref="IsPushedChanged"/>
@@ -1070,9 +1202,22 @@ public class Joystick : EventDispatcherObject
         RegisterSmoothingSample(in x, in y, in time);
 
         // Validate the joystick.
+        float oldX = _x;
+        float oldY = _y;
         Validate();
 
-        // Raise event.
+        // Update post-validation properties. These properties are update here,
+        // instead of on the validation method, because the validation method 
+        // will not perform a validation when the raw position doesn't change,
+        // and these properties need to be updated independently of position changes.
+        Delta = JoystickDelta.FromJoystickPosition(oldX, oldY, _x, _y);
+        MovementSpeed = Delta.Distance == 0f ? 0f
+            : FrameTime.TotalMilliseconds > 0d
+            ? Delta.Distance / (float)FrameTime.TotalSeconds
+            : float.PositiveInfinity;
+        IsMoving = Delta.Distance > 0f;
+
+        // Perform post-validation operations.
         OnUpdated();
         DispatchEvents();
     }

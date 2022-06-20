@@ -108,7 +108,7 @@ public abstract class InputEvent
     /// <param name="time">Amount of time elapsed since the 
     /// last call to <see cref="Update(TimeSpan)"/> method.</param>
     /// <remarks>
-    /// This method is called be <see cref="Update(TimeSpan)"/> 
+    /// This method is called by <see cref="Update(TimeSpan)"/> 
     /// method, to allow inheritors to reevaluate the event's 
     /// triggering conditions and to trigger the event when 
     /// these conditions are met.

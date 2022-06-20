@@ -201,7 +201,7 @@ public class XGamepad
 
     /// <summary>
     /// It's invoked whenever an XInput button is pressed — 
-    /// that is — is state changed from released to pressed.
+    /// that is, its state is changed from released to pressed.
     /// </summary>
     /// <seealso cref="ButtonReleased"/>
     /// <seealso cref="ButtonStateChanged"/>
@@ -622,12 +622,12 @@ public class XGamepad
     #endregion
 
 
-    #region InputEvent registering related methods    
+    #region InputEvent registration related methods    
 
     /// <summary>
     /// Registers and returns a <see cref="DigitalButtonInputEvent{T}"/> 
     /// that is triggered when the specified button changes its state 
-    /// from released to pressed, meaning the user had just tapped 
+    /// from released to pressed, meaning the user has just tapped 
     /// the button.
     /// </summary>
     /// <param name="button"><see cref="XButtons"/> constant that 
@@ -643,8 +643,6 @@ public class XGamepad
     /// is <see cref="XButtons.None"/>.</exception>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="callback"/> is <see langword="null"/>.</exception>
-    /// <seealso cref="RegisterButtonReleasedEvent(XButtons, DigitalButtonInputEventHandler{XInputButton})"/>
-    /// <seealso cref="RegisterButtonHoldEvent(XButtons, TimeSpan, DigitalButtonInputEventHandler{XInputButton})"/>
     public DigitalButtonInputEvent<XInputButton> RegisterButtonPressedEvent(
         XButtons button, DigitalButtonInputEventHandler<XInputButton> callback)
     {
@@ -655,11 +653,7 @@ public class XGamepad
         if (callback is null)
             throw new ArgumentNullException(nameof(callback));
 
-        DigitalButtonInputEvent<XInputButton> inputEvent = new(Buttons[button],
-            DigitalButtonInputEventMode.OnPress, TimeSpan.Zero);
-        inputEvent.AddHandler((sender, e) => callback.Invoke(sender, (DigitalButtonInputEventArgs<XInputButton>)e));
-        RegisterInputEvent(inputEvent);
-        return inputEvent;
+        return this.RegisterButtonPressedEvent(Buttons[button], callback);
     }
 
 
@@ -693,11 +687,7 @@ public class XGamepad
         if (callback is null)
             throw new ArgumentNullException(nameof(callback));
 
-        DigitalButtonInputEvent<XInputButton> inputEvent = new(Buttons[button],
-            DigitalButtonInputEventMode.OnRelease, TimeSpan.Zero);
-        inputEvent.AddHandler((sender, e) => callback.Invoke(sender, (DigitalButtonInputEventArgs<XInputButton>)e));
-        RegisterInputEvent(inputEvent);
-        return inputEvent;
+        return this.RegisterButtonReleasedEvent(Buttons[button], callback);
     }
 
 
@@ -744,11 +734,7 @@ public class XGamepad
         if (callback is null)
             throw new ArgumentNullException(nameof(callback));
 
-        DigitalButtonInputEvent<XInputButton> inputEvent = new(Buttons[button],
-            DigitalButtonInputEventMode.OnHold, holdDuration);
-        inputEvent.AddHandler((sender, e) => callback.Invoke(sender, (DigitalButtonInputEventArgs<XInputButton>)e));
-        RegisterInputEvent(inputEvent);
-        return inputEvent;
+        return this.RegisterButtonHoldEvent(Buttons[button], holdDuration, callback);
     }
 
 
@@ -804,12 +790,9 @@ public class XGamepad
         if (callback is null)
             throw new ArgumentNullException(nameof(callback));
 
-        RepeatDigitalButtonInputEvent<XInputButton> inputEvent = new(Buttons[button],
-            initialDelay, repeatDelay,
-            accelerationRatio, minRepeatDelay, maxRepeatDelay);
-        inputEvent.AddHandler((sender, e) => callback.Invoke(sender, (DigitalButtonInputEventArgs<XInputButton>)e));
-        RegisterInputEvent(inputEvent);
-        return inputEvent;
+        return this.RegisterButtonRepeatEvent(
+            Buttons[button], initialDelay, repeatDelay,
+            accelerationRatio, minRepeatDelay, maxRepeatDelay, callback);
     }
 
 

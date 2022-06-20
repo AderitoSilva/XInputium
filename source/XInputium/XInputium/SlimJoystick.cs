@@ -356,6 +356,26 @@ public readonly struct SlimJoystick
         return new SlimJoystick(X, -Y);
     }
 
+
+    /// <summary>
+    /// Gets a <see cref="JoystickDelta"/> object that represents the difference 
+    /// between the specified <see cref="SlimJoystick"/> object and the 
+    /// current <see cref="SlimJoystick"/>.
+    /// </summary>
+    /// <param name="sourcePosition">A <see cref="SlimJoystick"/> object that 
+    /// represents the source joystick position.</param>
+    /// <returns>A <see cref="JoystickDelta"/> object representing the 
+    /// delta between <paramref name="sourcePosition"/> and the current 
+    /// <see cref="SlimJoystick"/>. If there is no position change between 
+    /// both <see cref="SlimJoystick"/> objects, <see cref="JoystickDelta.Zero"/>
+    /// is returned.</returns>
+    /// <seealso cref="JoystickDelta.FromJoystickPosition(SlimJoystick, SlimJoystick)"/>
+    /// <seealso cref="JoystickDelta"/>
+    public JoystickDelta GetDelta(SlimJoystick sourcePosition)
+    {
+        return JoystickDelta.FromJoystickPosition(sourcePosition, this);
+    }
+
     #endregion Methods
 
 

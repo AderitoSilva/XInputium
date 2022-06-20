@@ -12,8 +12,7 @@ public enum JoystickDirection
 
 
     /// <summary>
-    /// The joystick is not pushed and, therefore, it's at 
-    /// its center position.
+    /// Represents no direction, for when there is no movement.
     /// </summary>
     None = 0,
 
