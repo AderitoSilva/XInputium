@@ -299,15 +299,23 @@ public class XInputDevice : InputDevice<XInputDeviceState>
             .XInputGetState(dwUserIndex, ref state);
         if (result == Win32ErrorCodes.ERROR_SUCCESS)
         {
+            static float ConvertThumbToFloat(short axis)
+            {
+                return ((float)axis) / (axis >= 0 ? 32767 : 32768);
+            }
+            static float ConvertTriggerToFloat(byte axis)
+            {
+                return ((float)axis) / byte.MaxValue;
+            }
             return new XInputDeviceState(
                 isConnected: true,
                 buttons: ConvertToXButtons(in state.Gamepad.wButtons),
-                leftJoystick: new(((float)state.Gamepad.sThumbLX) / 32768,
-                                   ((float)state.Gamepad.sThumbLY) / 32768),
-                rightJoystick: new(((float)state.Gamepad.sThumbRX) / 32768,
-                                    ((float)state.Gamepad.sThumbRY) / 32768),
-                leftTrigger: new(((float)state.Gamepad.bLeftTrigger) / 255),
-                rightTrigger: new(((float)state.Gamepad.bRightTrigger) / 255)
+                leftJoystick: new(ConvertThumbToFloat(state.Gamepad.sThumbLX),
+                                   ConvertThumbToFloat(state.Gamepad.sThumbLY)),
+                rightJoystick: new(ConvertThumbToFloat(state.Gamepad.sThumbRX),
+                                    ConvertThumbToFloat(state.Gamepad.sThumbRY)),
+                leftTrigger: new(ConvertTriggerToFloat(state.Gamepad.bLeftTrigger)),
+                rightTrigger: new(ConvertTriggerToFloat(state.Gamepad.bRightTrigger))
             );
         }
         else if (result == Win32ErrorCodes.ERROR_DEVICE_NOT_CONNECTED)
@@ -318,7 +326,7 @@ public class XInputDevice : InputDevice<XInputDeviceState>
         {
             // Here, some error occurred, and 'result' has the Win32 error
             // code that specifies the error. However, for now, we are just
-            // return an empty state, as if the device wasn't connected.
+            // returning an empty state, as if the device wasn't connected.
             return XInputDeviceState.Empty;
             // TODO Consider throwing an Exception when getting the device state.
             //throw new Win32Exception((int)result);
