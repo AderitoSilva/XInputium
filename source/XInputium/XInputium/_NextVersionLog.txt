@@ -1,0 +1,17 @@
+﻿This file contains a simple log of new added features and fixed bugs
+and issues, so they can be listed for the next release.
+
+
+-------------------------------
+NEW FEATURES / IMPROVEMENTS
+-------------------------------
+Added `CurrentStateDuration` and `PreviousStateDuration` properties to `ActivationInputEvent` and `ActivationInputEventArgs` classes. These make it easier to create events that perform time-based actions.
+
+
+-------------------------------
+BUG FIXES:
+-------------------------------
+FIXED - Fixed a bug with `XInputDevice.GetState` method, where it was performing a division by 32768 instead of 32767, causing a very small imprecision in positive joystick axes' values.
+FIXED - Fixed some documentation misspells.
+
+
