@@ -7,7 +7,63 @@ namespace XInputium;
 /// when a custom condition is met/unmet, and triggers whenever it 
 /// is activated or deactivated.
 /// </summary>
+/// <remarks>
+/// <see cref="ActivationInputEvent"/> is a very versatile 
+/// <see cref="InputEvent"/> that enables you to set up very specific 
+/// events without requiring too much code. 
+/// <br/><br/>
+/// <see cref="ActivationInputEvent"/> can have two states: active 
+/// or inactive. Depending on the value of <see cref="TriggerMode"/> 
+/// property, it triggers the event only when its state changes from 
+/// inactive to active (activation), only when the state changes from 
+/// active to inactive (deactivation), or whenever the state changes 
+/// (activation or deactivation).
+/// <br/><br/>
+/// <see cref="ActivationInputEvent"/> determines its state by calling 
+/// a function your provide. That function must return 
+/// <see langword="true"/> to indicate the active state, or 
+/// <see langword="false"/> to indicate the inactive state. The function 
+/// is called on every update from the input system consuming the event.
+/// <br/><br/>
+/// Although your custom function is what determines the state of the 
+/// <see cref="ActivationInputEvent"/>, depending on several properties 
+/// of the <see cref="ActivationInputEvent"/> instance, the change of 
+/// state may not be immediate. The <see cref="ActivationDelay"/> 
+/// property specifies a delay between the moment your custom function
+/// starts returning <see langword="true"/> and the moment the event 
+/// will activate (change its state to active). If, during this delay, 
+/// your function returns <see langword="false"/>, 
+/// <see cref="ActivationInputEvent"/> will abort the activation 
+/// process. Similarly to <see cref="ActivationDelay"/> property, there 
+/// is <see cref="DeactivationDelay"/> property, that works similarly, 
+/// but for the deactivation.
+/// <br/><br/>
+/// There's also <see cref="ActiveTimeout"/> property, that specifies 
+/// the maximum duration the <see cref="ActivationInputEvent"/> will 
+/// ever be active — once the activation occurs, if this timeout expires, 
+/// the event deactivates, even if your custom function keeps returning 
+/// <see langword="true"/>. Then, when you function returns 
+/// <see langword="false"/> again, activation is allowed to occur again.
+/// <br/><br/>
+/// To enable you to trade information between the code that registers 
+/// the event and the code that handles the event, 
+/// <see cref="ActivationInputEvent"/> provides the <see cref="Parameter"/> 
+/// property, that can be set with a custom object.
+/// <br/><br/>
+/// The use cases of <see cref="ActivationInputEvent"/> are many. You can 
+/// use it to notify you when a specific condition starts being met, when 
+/// it stops being met or both. You can also fine-tune the 
+/// <see cref="ActivationDelay"/> and <see cref="DeactivationDelay"/> 
+/// properties to ignore short moments of unmet conditions. Another 
+/// example would be to use <see cref="ActivationInputEvent"/> to notify 
+/// you after a specific button or set of buttons is held by, at least, 
+/// a specific amount of time. Note that, for single buttons, you can 
+/// use the specialized <see cref="DigitalButtonInputEvent{T}"/> class to 
+/// perform the same functionality. See 
+/// <see cref="DigitalButtonInputEvent{T}"/> for more information.
+/// </remarks>
 /// <seealso cref="InputEvent"/>
+/// <seealso cref="ActivationInputEventArgs"/>
 public class ActivationInputEvent : InputEvent
 {
 
@@ -15,19 +71,19 @@ public class ActivationInputEvent : InputEvent
     #region Fields
 
     private const ActivationInputEventTriggerMode DefaultTriggerMode
-        = ActivationInputEventTriggerMode.OnActivationAndDeactivation;
-    private static TimeSpan s_DefaultActiveTimeout = TimeSpan.MaxValue;
+        = ActivationInputEventTriggerMode.OnActivationAndDeactivation;  // The default value for TriggerMode property.
+    private static TimeSpan s_DefaultActiveTimeout = TimeSpan.MaxValue;  // The default value for ActiveTimeout property.
 
-    private TimeSpan _activationDelay = TimeSpan.Zero;
-    private TimeSpan _deactivationDelay = TimeSpan.Zero;
-    private TimeSpan _activeTimeout = s_DefaultActiveTimeout;
-    private ActivationInputEventTriggerMode _triggerMode = DefaultTriggerMode;
+    private TimeSpan _activationDelay = TimeSpan.Zero;  // Store for the value of ActivationDelay property.
+    private TimeSpan _deactivationDelay = TimeSpan.Zero;  // Store for the value of DeactivationDelay property.
+    private TimeSpan _activeTimeout = s_DefaultActiveTimeout;  // Store for the value of ActiveTimeout property.
+    private ActivationInputEventTriggerMode _triggerMode = DefaultTriggerMode;  // Store for the value of TriggerMode property.
 
-    private readonly ActivationInputEventArgs _eventArgs;
-    private readonly Func<bool> _activator;
-    private TimeSpan _totalTime = TimeSpan.Zero;
-    private bool _lastActivatorState = false;
-    private bool _hasTimedOut = false;
+    private readonly ActivationInputEventArgs _eventArgs;  // Singleton event arguments instance, that we will use.
+    private readonly Func<bool> _activator;  // User defined function that is used to determine the active/inactive state of the event.
+    private TimeSpan _totalTime = TimeSpan.Zero;  // Counter that accumulates the time elapsed between hot-points in the state checking.
+    private bool _lastActivatorState = false;  // Stores the most recent state reported by the activation function that is different from the last one.
+    private bool _hasTimedOut = false;  // Indicates if the active state has timed out.
 
     #endregion Fields
 
@@ -328,6 +384,19 @@ public class ActivationInputEvent : InputEvent
     /// Gets or sets the user defined object associated with the 
     /// current <see cref="ActivationInputEvent"/> instance.
     /// </summary>
+    /// <remarks>
+    /// You can use this property to set a custom object, that is passed 
+    /// to the <see cref="ActivationInputEventArgs"/> instance when the 
+    /// event is triggered. See 
+    /// <see cref="ActivationInputEventArgs.Parameter"/> for more 
+    /// information.
+    /// <br/><br/>
+    /// This property can be useful when you need to pass information
+    /// from the code that is registering the 
+    /// <see cref="ActivationInputEvent"/> to the code that is handling
+    /// it when it is triggered.
+    /// </remarks>
+    /// <seealso cref="ActivationInputEventArgs.Parameter"/>
     public object? Parameter { get; set; }
 
 
@@ -335,7 +404,55 @@ public class ActivationInputEvent : InputEvent
     /// Gets a <see cref="bool"/> that indicates if the 
     /// <see cref="ActivationInputEvent"/> is currently active.
     /// </summary>
+    /// <seealso cref="CurrentStateDuration"/>
+    /// <seealso cref="PreviousStateDuration"/>
+    /// <seealso cref="ActivationInputEventArgs.IsActive"/>
     public bool IsActive { get; private set; }
+
+
+    /// <summary>
+    /// Gets the amount of input time spent on the previous 
+    /// active/inactive state of the <see cref="ActivationInputEvent"/>.
+    /// </summary>
+    /// <returns>The duration of the last active/inactive state, before 
+    /// the current state. If that state was 'active', the returned value 
+    /// is never greater than <see cref="ActiveTimeout"/>.</returns>
+    /// <remarks>
+    /// This property returns the amount of time elapsed between 
+    /// the second to last and the last change to the value of 
+    /// <see cref="IsActive"/> property. For instance, if the current 
+    /// state is 'inactive', this property returns the duration of the 
+    /// most recent active state. The time information is in input time,
+    /// as measured by the input code that is hosting the 
+    /// <see cref="ActivationInputEvent"/>.
+    /// </remarks>
+    /// <seealso cref="CurrentStateDuration"/>
+    /// <seealso cref="IsActive"/>
+    /// <seealso cref="ActivationInputEventArgs.PreviousStateDuration"/>
+    public TimeSpan PreviousStateDuration { get; private set; } = TimeSpan.Zero;
+
+
+    /// <summary>
+    /// Gets the amount of input time elapsed since the last 
+    /// change to the active/inactive state.
+    /// </summary>
+    /// <remarks>
+    /// This property returns the amount of time elapsed since 
+    /// the last change to the value of <see cref="IsActive"/>
+    /// property. For instance, if the current state is 'inactive',
+    /// this property returns the amount of time elapsed since the 
+    /// deactivation occurred. The time information is in input 
+    /// time, as measured by the input code that is hosting the 
+    /// <see cref="ActivationInputEvent"/>.
+    /// <br/><br/>
+    /// To obtain the duration of the state that preceded the 
+    /// current state, use <see cref="PreviousStateDuration"/> property.
+    /// See <see cref="PreviousStateDuration"/> for more information.
+    /// </remarks>
+    /// <seealso cref="PreviousStateDuration"/>
+    /// <seealso cref="IsActive"/>
+    /// <seealso cref="ActivationInputEventArgs.CurrentStateDuration"/>
+    public TimeSpan CurrentStateDuration { get; private set; } = TimeSpan.Zero;
 
     #endregion Properties
 
@@ -376,6 +493,8 @@ public class ActivationInputEvent : InputEvent
                 {
                     _totalTime = TimeSpan.Zero;
                     _hasTimedOut = false;
+                    PreviousStateDuration = CurrentStateDuration;
+                    CurrentStateDuration = _totalTime;
                     IsActive = true;
                     if (TriggerMode == ActivationInputEventTriggerMode.OnActivationAndDeactivation
                         || TriggerMode == ActivationInputEventTriggerMode.OnActivation)
@@ -391,7 +510,14 @@ public class ActivationInputEvent : InputEvent
                     || (_totalTime >= ActiveTimeout && !_hasTimedOut))
                 {
                     _totalTime = TimeSpan.Zero;
-                    _hasTimedOut = _totalTime >= ActivationDelay;
+                    _hasTimedOut = true;
+                    PreviousStateDuration = CurrentStateDuration;
+                    if (PreviousStateDuration > ActiveTimeout)
+                    {
+                        // Our active state time must not be greater than the timeout.
+                        PreviousStateDuration = ActiveTimeout;
+                    }
+                    CurrentStateDuration = _totalTime;
                     IsActive = false;
                     if (TriggerMode == ActivationInputEventTriggerMode.OnActivationAndDeactivation
                         || TriggerMode == ActivationInputEventTriggerMode.OnDeactivation)
@@ -407,6 +533,7 @@ public class ActivationInputEvent : InputEvent
         }
         finally
         {
+            CurrentStateDuration += time;
             _lastActivatorState = activatorState;
         }
     }
