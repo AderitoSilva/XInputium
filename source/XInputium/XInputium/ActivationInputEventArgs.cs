@@ -145,6 +145,16 @@ public class ActivationInputEventArgs : InputEventArgs
     /// <seealso cref="ActivationInputEvent.Parameter"/>
     public object? Parameter => _event.Parameter;
 
+
+    /// <summary>
+    /// Gets the <see cref="ActivationInputEventTriggerMode"/> constant 
+    /// that specifies the trigger mode the associated 
+    /// <see cref="ActivationInputEvent"/> is using.
+    /// </summary>
+    /// <seealso cref="ActivationInputEvent.TriggerMode"/>
+    /// <seealso cref="ActivationInputEventTriggerMode"/>
+    public ActivationInputEventTriggerMode TriggerMode => _event.TriggerMode;
+
     #endregion Properties
 
 

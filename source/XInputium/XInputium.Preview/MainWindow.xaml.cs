@@ -172,6 +172,7 @@ public partial class MainWindow : Window
                 Debug.WriteLine($"Jump force: {jumpForce:P0};");
             });
 
+
     }
 
 

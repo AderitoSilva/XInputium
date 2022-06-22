@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace XInputium;
 
 /// <summary>
 /// Implements an <see cref="InputEvent"/> that activates/deactivates 
 /// when a custom condition is met/unmet, and triggers whenever it 
-/// is activated or deactivated.
+/// is activated, deactivated or while it is active, depending on the 
+/// triggering mode you specify.
 /// </summary>
 /// <remarks>
 /// <see cref="ActivationInputEvent"/> is a very versatile 
@@ -16,14 +18,14 @@ namespace XInputium;
 /// or inactive. Depending on the value of <see cref="TriggerMode"/> 
 /// property, it triggers the event only when its state changes from 
 /// inactive to active (activation), only when the state changes from 
-/// active to inactive (deactivation), or whenever the state changes 
-/// (activation or deactivation).
+/// active to inactive (deactivation), whenever the state changes 
+/// (activation or deactivation), while it is active, or never.
 /// <br/><br/>
 /// <see cref="ActivationInputEvent"/> determines its state by calling 
 /// a function your provide. That function must return 
 /// <see langword="true"/> to indicate the active state, or 
 /// <see langword="false"/> to indicate the inactive state. The function 
-/// is called on every update from the input system consuming the event.
+/// is called on every update from the input system hosting the event.
 /// <br/><br/>
 /// Although your custom function is what determines the state of the 
 /// <see cref="ActivationInputEvent"/>, depending on several properties 
@@ -42,28 +44,30 @@ namespace XInputium;
 /// the maximum duration the <see cref="ActivationInputEvent"/> will 
 /// ever be active — once the activation occurs, if this timeout expires, 
 /// the event deactivates, even if your custom function keeps returning 
-/// <see langword="true"/>. Then, when you function returns 
+/// <see langword="true"/>. Then, when your function returns 
 /// <see langword="false"/> again, activation is allowed to occur again.
 /// <br/><br/>
-/// To enable you to trade information between the code that registers 
+/// To enable you to pass information between the code that registers 
 /// the event and the code that handles the event, 
 /// <see cref="ActivationInputEvent"/> provides the <see cref="Parameter"/> 
-/// property, that can be set with a custom object.
+/// property, that can be set with a custom object you specify.
 /// <br/><br/>
-/// The use cases of <see cref="ActivationInputEvent"/> are many. You can 
-/// use it to notify you when a specific condition starts being met, when 
-/// it stops being met or both. You can also fine-tune the 
-/// <see cref="ActivationDelay"/> and <see cref="DeactivationDelay"/> 
-/// properties to ignore short moments of unmet conditions. Another 
-/// example would be to use <see cref="ActivationInputEvent"/> to notify 
-/// you after a specific button or set of buttons is held by, at least, 
-/// a specific amount of time. Note that, for single buttons, you can 
-/// use the specialized <see cref="DigitalButtonInputEvent{T}"/> class to 
-/// perform the same functionality. See 
-/// <see cref="DigitalButtonInputEvent{T}"/> for more information.
+/// The use cases of <see cref="ActivationInputEvent"/> are many. You 
+/// can use it to get notified when a specific condition starts being 
+/// met, when it stops being met, both, or while it is met. You can also 
+/// fine-tune the <see cref="ActivationDelay"/> and 
+/// <see cref="DeactivationDelay"/> properties to ignore short moments of 
+/// unmet conditions. A valid example would be to use 
+/// <see cref="ActivationInputEvent"/> to notify you after a specific 
+/// button or set of buttons is held by, at least, a specific amount of 
+/// time. Note that, for single buttons, you can use the specialized 
+/// <see cref="DigitalButtonInputEvent{T}"/> class to achieve the same 
+/// functionality. See <see cref="DigitalButtonInputEvent{T}"/> for more 
+/// information.
 /// </remarks>
 /// <seealso cref="InputEvent"/>
 /// <seealso cref="ActivationInputEventArgs"/>
+/// <seealso cref="ActivationInputEventTriggerMode"/>
 public class ActivationInputEvent : InputEvent
 {
 
@@ -72,7 +76,7 @@ public class ActivationInputEvent : InputEvent
 
     private const ActivationInputEventTriggerMode DefaultTriggerMode
         = ActivationInputEventTriggerMode.OnActivationAndDeactivation;  // The default value for TriggerMode property.
-    private static TimeSpan s_DefaultActiveTimeout = TimeSpan.MaxValue;  // The default value for ActiveTimeout property.
+    private static readonly TimeSpan s_DefaultActiveTimeout = TimeSpan.MaxValue;  // The default value for ActiveTimeout property.
 
     private TimeSpan _activationDelay = TimeSpan.Zero;  // Store for the value of ActivationDelay property.
     private TimeSpan _deactivationDelay = TimeSpan.Zero;  // Store for the value of DeactivationDelay property.
@@ -459,6 +463,13 @@ public class ActivationInputEvent : InputEvent
 
     #region Methods
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void RaiseEvent()
+    {
+        Raise(this, _eventArgs);
+    }
+
+
     /// <summary>
     /// Updates the event logic and reevaluates triggering conditions, 
     /// and, if these conditions are met, triggers the event.
@@ -499,7 +510,7 @@ public class ActivationInputEvent : InputEvent
                     if (TriggerMode == ActivationInputEventTriggerMode.OnActivationAndDeactivation
                         || TriggerMode == ActivationInputEventTriggerMode.OnActivation)
                     {
-                        Raise(this, _eventArgs);
+                        RaiseEvent();
                     }
                 }
             }
@@ -522,9 +533,16 @@ public class ActivationInputEvent : InputEvent
                     if (TriggerMode == ActivationInputEventTriggerMode.OnActivationAndDeactivation
                         || TriggerMode == ActivationInputEventTriggerMode.OnDeactivation)
                     {
-                        Raise(this, _eventArgs);
+                        RaiseEvent();
                     }
                 }
+            }
+            // Trigger the event based on the determine state, if
+            // we are using a continuous trigger mode.
+            if (TriggerMode == ActivationInputEventTriggerMode.WhileActive
+                && IsActive)
+            {
+                RaiseEvent();
             }
         }
         catch (Exception)

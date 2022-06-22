@@ -6,6 +6,8 @@ and issues, so they can be listed for the next release.
 NEW FEATURES / IMPROVEMENTS
 -------------------------------
 Added `CurrentStateDuration` and `PreviousStateDuration` properties to `ActivationInputEvent` and `ActivationInputEventArgs` classes. These make it easier to create events that perform time-based actions.
+Added two new trigger modes to `ActivationInputEvent` — the `WhileActive` and `Never` trigger modes. `WhileActive` trigger mode gives developers the ability to get notified on each input loop while a specific condition is active.
+Added the new `TriggerMode` property to `ActivationInputEventArgs` class, to make it easier for event handlers to determine how the event is being triggered.
 
 
 -------------------------------
