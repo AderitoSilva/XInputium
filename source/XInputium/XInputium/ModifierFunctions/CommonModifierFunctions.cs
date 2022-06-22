@@ -118,13 +118,13 @@ public static class CommonModifierFunctions
     /// negated absolute middle.
     /// </summary>
     /// <param name="middle">Value that determines where any input 
-    /// value should start returning true..</param>
+    /// value should start returning true.</param>
     /// <returns>A new <see cref="ModifierFunction"/> that returns 
     /// 0 if its input value is less than the absolute 
     /// <paramref name="middle"/>, 1 if the input value is greater 
     /// than the absolute <paramref name="middle"/> or -1 if the 
     /// input value is less that the negated absolute 
-    /// <paramref name="middle"/>..</returns>
+    /// <paramref name="middle"/>.</returns>
     /// <exception cref="ArgumentException">
     /// <paramref name="middle"/> is <see cref="float.NaN"/>.</exception>
     /// <seealso cref="Quantize(float)"/>
@@ -196,12 +196,30 @@ public static class CommonModifierFunctions
     /// value to the specified step size.
     /// </summary>
     /// <param name="stepSize">Number by how much the quantization 
-    /// is done. If 0 is specified, no quantization is applied, making the 
-    /// <see cref="ModifierFunction"/> return its input value.</param>
+    /// is performed. If 0 is specified, no quantization is applied, 
+    /// making the <see cref="ModifierFunction"/> return its input 
+    /// value.</param>
     /// <returns>A <see cref="ModifierFunction"/> that quantizes its 
     /// input value to the specified <paramref name="stepSize"/>.</returns>
     /// <exception cref="ArgumentException"><paramref name="stepSize"/> 
     /// is <see cref="float.NaN"/>.</exception>
+    /// <remarks>
+    /// The <see cref="ModifierFunction"/> returned by this method 
+    /// quantizes its input to a specified step size. In other words, 
+    /// its output is equal to <paramref name="stepSize"/>
+    /// multiplied by the closest integer that is lower or equal to 
+    /// its input. For instance, if <paramref name="stepSize"/> is 
+    /// 0.25, the function's output will be a multiplier of 0.25 
+    /// (ex. 0, 0.25, 0.5, 0.75, or 1).
+    /// <br/><br/>
+    /// The returned <see cref="ModifierFunction"/> can be useful in 
+    /// scenarios where you intent to divide an axis in several even
+    /// chunks. One valid example would be to use the 
+    /// <see cref="ModifierFunction"/> returned by this method with 
+    /// a <paramref name="stepSize"/> of 0.125 (or 1/8th) in the angle
+    /// axis of a joystick. This way, the joystick's angle would always
+    /// get snapped to a horizontal, vertical or diagonal direction.
+    /// </remarks>
     /// <seealso cref="Boolean(float)"/>
     public static ModifierFunction Quantize(float stepSize)
     {
