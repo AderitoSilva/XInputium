@@ -155,6 +155,23 @@ public partial class MainWindow : Window
     {
         // Code in this method is for simple testing purposes during debug.
 
+        // This could be used to simulate a typical 'jump' action button, where
+        // the user makes a character jump higher by holding the button for longer,
+        // but with a time limit that makes the character jump its highest if the
+        // user doesn't release the button after too long.
+        double maxJumpHoldTime = 750;  // Button hold time for the highest jump, in milliseconds. 
+        Gamepad.RegisterActivationInputEvent(
+            () => Gamepad.Buttons.A.IsPressed,
+            TimeSpan.Zero, TimeSpan.Zero,
+            TimeSpan.FromMilliseconds(maxJumpHoldTime),
+            ActivationInputEventTriggerMode.OnDeactivation,
+            (s, e) =>
+            {
+                float jumpForce = (float)(e.PreviousStateDuration.TotalMilliseconds / maxJumpHoldTime);
+                jumpForce = NonLinearFunctions.QuadraticEaseOut(jumpForce);
+                Debug.WriteLine($"Jump force: {jumpForce:P0};");
+            });
+
     }
 
 
