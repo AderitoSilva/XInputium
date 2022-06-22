@@ -39,9 +39,11 @@ gamepad.ButtonPressed += (s, e) => Debug.WriteLine($"Button {e.Button} was press
 // Call this on every app/game frame.
 gamepad.Update();
 ```
-`XGamepad` represents a logical controller device, and is the main class you would use to consume most of XInputium features. The only thing you need to do is to update the device state on every app/game frame, as shown in the previous example. Once you call `gamepad.Update()`, any consequent events will trigger.
+`XGamepad` represents a logical controller device, and is the main class you would use to consume most of XInputium's features. The only thing you need to do is to update the device state on every app/game frame, as shown in the previous example. Once you call `gamepad.Update()`, any consequent events will trigger.
 
-XInputium is fully documented, and essential information in the remarks sections is included where necessary. The library is designed to be as easy to use as possible, while still providing powerful features. A Wiki page and Reference Documentation are planned for the near future, so keep an eye out.
+XInputium is fully documented, and essential information in the remarks sections is included wherever necessary. The API is designed to be as easy to use as possible, while still providing powerful features.
+
+See the [Getting started](https://github.com/AderitoSilva/XInputium/wiki/Getting-started) page on the wiki for more information on how to get up and running with XInputium.
 
 ## System requirements
 * XInputium is built on **.NET 6.0**.
@@ -55,3 +57,5 @@ XInputium is fully documented, and essential information in the remarks sections
 The provided XInputium demo application — XInputium Preview — lets you see XInputium in action and allows you to test-drive some of its features. It is a WPF application, made mostly in XAML, that shows how you would use XInputium in your own applications or games. XInputium Preview can also be useful to diagnose your XInput compatible device.
 
 ![XInputium Preview — XInputium feature preview application](/assets/images/XInputiumPreview.png "XInputium Preview — XInputium feature preview application")
+
+XInputium Preview offers an easy way for fine-tunning gamepad settings to use on your own applications. Also, feel free to take a look at its source code, and have a glimpse on how to use XInputium within a working application.
