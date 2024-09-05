@@ -59,3 +59,6 @@ The provided XInputium demo application — XInputium Preview — lets you see X
 ![XInputium Preview — XInputium feature preview application](/assets/images/XInputiumPreview.png "XInputium Preview — XInputium feature preview application")
 
 XInputium Preview offers an easy way for fine-tunning gamepad settings to use on your own applications. Also, feel free to take a look at its source code, and have a glimpse on how to use XInputium within a working application.
+
+## Aditional samples
+* [A sample console application](https://github.com/AderitoSilva/ControllerToMouseMapper) that emulates the mouse and the keyboard with a gamepad. 
