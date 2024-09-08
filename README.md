@@ -45,6 +45,8 @@ XInputium is fully documented, and essential information in the remarks sections
 
 See the [Getting started](https://github.com/AderitoSilva/XInputium/wiki/Getting-started) page on the wiki for more information on how to get up and running with XInputium.
 
+See also the sample projects listed in the end of this document (scroll down) to better understand how to use XInputium in practice.
+
 ## System requirements
 * XInputium is built on **.NET 6.0**.
 * XInputium uses **XInput 9.1.0** API.
